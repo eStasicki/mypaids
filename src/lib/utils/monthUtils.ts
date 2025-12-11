@@ -51,7 +51,7 @@ export function getMaxDaysInMonth(year: number, month: number): number {
 	return new Date(year, month, 0).getDate();
 }
 
-export function createBill(name: string, amount: string | number | null): Bill {
+export function createBill(name: string, amount: string | number | null, categoryId?: string): Bill {
 	const parsedAmount =
 		amount === null || amount === '' || amount === '-'
 			? null
@@ -62,7 +62,8 @@ export function createBill(name: string, amount: string | number | null): Bill {
 	return {
 		id: crypto.randomUUID(),
 		name: name.trim(),
-		amount: parsedAmount === null || isNaN(parsedAmount) ? null : parsedAmount
+		amount: parsedAmount === null || isNaN(parsedAmount) ? null : parsedAmount,
+		categoryId: categoryId || undefined
 	};
 }
 

@@ -1,5 +1,6 @@
 import type { Month } from '../types';
 import { getTotalForMonth } from './monthUtils';
+import { DEFAULT_CATEGORIES, type Category } from './categoryUtils';
 
 export function getChartLabels(months: Month[]): string[] {
 	return months.map((m) =>
@@ -9,6 +10,41 @@ export function getChartLabels(months: Month[]): string[] {
 
 export function getChartData(months: Month[]): number[] {
 	return months.map((m) => getTotalForMonth(m));
+}
+
+export function getChartDataByCategory(months: Month[]): Record<string, number[]> {
+	const categoryData: Record<string, number[]> = {};
+	
+	DEFAULT_CATEGORIES.forEach((category) => {
+		categoryData[category.id] = months.map((month) => {
+			return month.bills
+				.filter((bill) => bill.categoryId === category.id)
+				.reduce((sum, bill) => sum + (bill.amount ?? 0), 0);
+		});
+	});
+	
+	return categoryData;
+}
+
+export function getCategoryTotals(months: Month[]): Array<{ category: Category; total: number }> {
+	const totals = new Map<string, number>();
+	
+	months.forEach((month) => {
+		month.bills.forEach((bill) => {
+			if (bill.categoryId && bill.amount !== null) {
+				const current = totals.get(bill.categoryId) || 0;
+				totals.set(bill.categoryId, current + bill.amount);
+			}
+		});
+	});
+	
+	return DEFAULT_CATEGORIES
+		.map((category) => ({
+			category,
+			total: totals.get(category.id) || 0
+		}))
+		.filter((item) => item.total > 0)
+		.sort((a, b) => b.total - a.total);
 }
 
 export const CHART_COLORS = {
@@ -60,4 +96,3 @@ export const CHART_CONFIG = {
 		}
 	}
 } as const;
-

@@ -1,19 +1,26 @@
 <script lang="ts">
 	import type { Month } from '$lib/types';
-	import { months } from '$lib/stores';
+	import { months, templates } from '$lib/stores';
 	import { createBill, parseAmount } from '$lib/utils/monthUtils';
+	import CategorySelector from './CategorySelector.svelte';
+	import TemplateManager from './TemplateManager.svelte';
+	import { DEFAULT_CATEGORIES, getCategoryById } from '$lib/utils/categoryUtils';
+	import { templateToBill } from '$lib/utils/templateUtils';
+	import type { BillTemplate } from '$lib/types';
 
 	let { month }: { month: Month } = $props();
 
 	let editingId = $state<string | null>(null);
 	let newBillName = $state('');
 	let newBillAmount = $state<string>('');
+	let newBillCategoryId = $state<string>('');
 	let newBillNameInput: HTMLInputElement | null = $state(null);
+	let showTemplateManager = $state(false);
 
 	function addBill() {
 		if (!newBillName.trim()) return;
 
-		const newBill = createBill(newBillName, newBillAmount);
+		const newBill = createBill(newBillName, newBillAmount, newBillCategoryId || undefined);
 
 		months.update((ms) =>
 			ms.map((m) =>
@@ -23,13 +30,14 @@
 
 		newBillName = '';
 		newBillAmount = '';
+		newBillCategoryId = '';
 		
 		setTimeout(() => {
 			newBillNameInput?.focus();
 		}, 0);
 	}
 
-	function updateBill(billId: string, field: 'name' | 'amount', value: string) {
+	function updateBill(billId: string, field: 'name' | 'amount' | 'categoryId' | 'comment', value: string) {
 		months.update((ms) =>
 			ms.map((m) =>
 				m.id === month.id
@@ -39,7 +47,7 @@
 								b.id === billId
 									? {
 											...b,
-											[field]: field === 'amount' ? parseAmount(value) : value
+											[field]: field === 'amount' ? parseAmount(value) : value || undefined
 										}
 									: b
 							)
@@ -70,12 +78,22 @@
 			editingId = null;
 		}
 	}
+
+	function handleSelectTemplate(template: BillTemplate) {
+		const bill = templateToBill(template);
+		months.update((ms) =>
+			ms.map((m) =>
+				m.id === month.id ? { ...m, bills: [...m.bills, bill] } : m
+			)
+		);
+	}
 </script>
 
 <div class="overflow-x-auto rounded-xl">
 	<table class="w-full" role="table">
 		<thead>
 			<tr class="border-b border-gray-700/50">
+				<th scope="col" class="text-left py-4 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Kategoria</th>
 				<th scope="col" class="text-left py-4 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Nazwa</th>
 				<th scope="col" class="text-right py-4 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Kwota (zł)</th>
 				<th scope="col" class="w-12" aria-label="Akcje"></th>
@@ -84,6 +102,35 @@
 		<tbody>
 			{#each month.bills as bill (bill.id)}
 				<tr class="border-b border-gray-700/30 hover:bg-gray-700/20 transition-all duration-150">
+					<td class="py-4 px-4">
+						{#if editingId === bill.id}
+							<CategorySelector
+								selectedCategoryId={bill.categoryId}
+								onSelect={(categoryId) => updateBill(bill.id, 'categoryId', categoryId)}
+							/>
+						{:else}
+							{@const category = bill.categoryId ? getCategoryById(bill.categoryId) : null}
+							{#if category}
+								<button
+									onclick={() => (editingId = bill.id)}
+									aria-label="Edytuj kategorię rachunku"
+									class="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-700/30 hover:bg-gray-700/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+									style="border-left: 3px solid {category.color};"
+								>
+									<span class="text-base">{category.icon}</span>
+									<span class="text-xs text-gray-300">{category.name}</span>
+								</button>
+							{:else}
+								<button
+									onclick={() => (editingId = bill.id)}
+									aria-label="Dodaj kategorię rachunku"
+									class="text-xs text-gray-500 hover:text-gray-400 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50 rounded px-2 py-1"
+								>
+									Brak
+								</button>
+							{/if}
+						{/if}
+					</td>
 					<td class="py-4 px-4">
 						{#if editingId === bill.id}
 							<input
@@ -96,13 +143,21 @@
 								class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all cursor-text"
 							/>
 						{:else}
-							<button
-								onclick={() => (editingId = bill.id)}
-								aria-label="Edytuj nazwę rachunku: {bill.name}"
-								class="text-left text-white hover:text-blue-400 transition-colors w-full text-sm font-medium py-1 focus:outline-none focus:ring-2 focus:ring-blue-500/50 rounded cursor-pointer"
-							>
-								{bill.name}
-							</button>
+							<div>
+								<button
+									onclick={() => (editingId = bill.id)}
+									aria-label="Edytuj nazwę rachunku: {bill.name}"
+									class="text-left text-white hover:text-blue-400 transition-colors w-full text-sm font-medium py-1 focus:outline-none focus:ring-2 focus:ring-blue-500/50 rounded cursor-pointer"
+								>
+									{bill.name}
+								</button>
+								{#if bill.comment}
+									<div class="text-xs text-gray-500 mt-1 italic flex items-start gap-1">
+										<span>💬</span>
+										<span class="flex-1">{bill.comment}</span>
+									</div>
+								{/if}
+							</div>
 						{/if}
 					</td>
 					<td class="py-4 px-4 text-right">
@@ -155,8 +210,31 @@
 						</button>
 					</td>
 				</tr>
+				{#if editingId === bill.id}
+					<tr class="border-b border-gray-700/30 bg-gray-700/20">
+						<td colspan="4" class="py-3 px-4">
+							<div>
+								<label class="block text-xs font-medium text-gray-300 mb-2">💬 Komentarz</label>
+								<textarea
+									value={bill.comment || ''}
+									oninput={(e) => updateBill(bill.id, 'comment', e.currentTarget.value)}
+									placeholder="Dodaj komentarz do tego rachunku..."
+									aria-label="Edytuj komentarz rachunku"
+									rows="2"
+									class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all cursor-text resize-none"
+								></textarea>
+							</div>
+						</td>
+					</tr>
+				{/if}
 			{/each}
 			<tr class="bg-gradient-to-r from-gray-700/20 to-gray-700/10 border-t border-gray-700/30">
+				<td class="py-4 px-4">
+					<CategorySelector
+						selectedCategoryId={newBillCategoryId}
+						onSelect={(categoryId) => (newBillCategoryId = categoryId)}
+					/>
+				</td>
 				<td class="py-4 px-4">
 					<input
 						type="text"
@@ -205,4 +283,6 @@
 		</tbody>
 	</table>
 </div>
+
+<TemplateManager show={showTemplateManager} onClose={() => (showTemplateManager = false)} onSelectTemplate={handleSelectTemplate} />
 

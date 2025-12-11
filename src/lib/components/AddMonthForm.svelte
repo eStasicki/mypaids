@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { months } from '$lib/stores';
+	import { months, templates } from '$lib/stores';
 	import type { Month } from '$lib/types';
 	import { getMaxDaysInMonth, sortMonthsByDate, MONTH_NAMES } from '$lib/utils/monthUtils';
 	import { DATE_RANGES } from '$lib/utils/constants';
+	import { templateToBill } from '$lib/utils/templateUtils';
 
 	let { onClose }: { onClose?: () => void } = $props();
 
@@ -24,10 +25,16 @@
 	function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
 		const date = new Date(year, month - 1, day);
+		
+		// Automatycznie dodaj rachunki z szablonów z flagą autoAdd
+		const autoBills = $templates
+			.filter((template) => template.autoAdd)
+			.map((template) => templateToBill(template));
+		
 		const newMonth: Month = {
 			id: crypto.randomUUID(),
 			date,
-			bills: []
+			bills: autoBills
 		};
 
 		months.update((ms) => {

@@ -10,7 +10,13 @@ export function loadMonthsFromStorage(): Month[] {
 		const parsed = JSON.parse(stored);
 		return parsed.map((m: any) => ({
 			...m,
-			date: new Date(m.date)
+			date: new Date(m.date),
+			notes: m.notes || undefined,
+			bills: (m.bills || []).map((b: any) => ({
+				...b,
+				categoryId: b.categoryId || undefined,
+				comment: b.comment || undefined
+			}))
 		}));
 	} catch (error) {
 		console.error('Failed to load months from storage:', error);

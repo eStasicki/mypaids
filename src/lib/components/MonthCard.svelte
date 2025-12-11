@@ -29,9 +29,11 @@
 	});
 
 	let editingDate = $state(false);
+	let editingNotes = $state(false);
 	let editDay = $state(month.date.getDate());
 	let editMonth = $state(month.date.getMonth() + 1);
 	let editYear = $state(month.date.getFullYear());
+	let editNotes = $state(month.notes || '');
 
 	function handleDelete() {
 		showDeleteModal = true;
@@ -110,23 +112,42 @@
 		editingDate = false;
 	}
 
-	function cancelEditingDate() {
-		editingDate = false;
-		editDay = month.date.getDate();
-		editMonth = month.date.getMonth() + 1;
-		editYear = month.date.getFullYear();
-	}
+		function cancelEditingDate() {
+			editingDate = false;
+			editDay = month.date.getDate();
+			editMonth = month.date.getMonth() + 1;
+			editYear = month.date.getFullYear();
+		}
 
-	function handleDateKeydown(event: KeyboardEvent) {
-		if (event.key === 'Enter') {
-			event.preventDefault();
-			saveDate();
+		function handleDateKeydown(event: KeyboardEvent) {
+			if (event.key === 'Enter') {
+				event.preventDefault();
+				saveDate();
+			}
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				cancelEditingDate();
+			}
 		}
-		if (event.key === 'Escape') {
-			event.preventDefault();
-			cancelEditingDate();
+
+		function saveNotes() {
+			months.update((ms) =>
+				ms.map((m) =>
+					m.id === month.id ? { ...m, notes: editNotes.trim() || undefined } : m
+				)
+			);
+			editingNotes = false;
 		}
-	}
+
+		function cancelEditingNotes() {
+			editingNotes = false;
+			editNotes = month.notes || '';
+		}
+
+		function startEditingNotes() {
+			editingNotes = true;
+			editNotes = month.notes || '';
+		}
 </script>
 
 <div class="group relative bg-gradient-to-br from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 hover:shadow-3xl hover:shadow-blue-500/10 hover:-translate-y-1 {isNewCard ? 'animate-pulse-new-card' : ''}">

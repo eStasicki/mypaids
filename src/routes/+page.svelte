@@ -3,10 +3,24 @@
 	import { onMount } from 'svelte';
 	import MonthCard from '$lib/components/MonthCard.svelte';
 	import AddMonthForm from '$lib/components/AddMonthForm.svelte';
+	import ExportImportModal from '$lib/components/ExportImportModal.svelte';
+	import SearchFiltersComponent from '$lib/components/SearchFilters.svelte';
+	import TemplateManager from '$lib/components/TemplateManager.svelte';
 	import { loadMonthsFromStorage, saveMonthsToStorage } from '$lib/utils/storageUtils';
 	import { sortMonthsByDate } from '$lib/utils/monthUtils';
+	import { filterMonths, getSearchStats, type SearchFilters } from '$lib/utils/searchUtils';
 
 	let showAddForm = $state(false);
+	let showExportImportModal = $state(false);
+	let showTemplateManager = $state(false);
+	let searchFilters = $state<SearchFilters>({
+		query: '',
+		categoryIds: new Set(),
+		minAmount: null,
+		maxAmount: null,
+		sortBy: 'date',
+		sortOrder: 'desc'
+	});
 
 	onMount(() => {
 		const loadedMonths = loadMonthsFromStorage();
@@ -31,7 +45,7 @@
 			</h1>
 			<p class="text-gray-400 text-sm">Zarządzaj swoimi rachunkami domowymi</p>
 		</div>
-		<div class="flex gap-3">
+		<div class="flex gap-3 flex-wrap">
 			<a
 				href="/summary"
 				aria-label="Przejdź do podsumowania"
@@ -42,6 +56,26 @@
 				</svg>
 				<span>Podsumowanie</span>
 			</a>
+			<button
+				onclick={() => (showExportImportModal = true)}
+				aria-label="Eksportuj lub importuj dane"
+				class="px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 border border-gray-600/50 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer flex items-center gap-2 active:scale-95"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+				</svg>
+				<span>Eksport/Import</span>
+			</button>
+			<button
+				onclick={() => (showTemplateManager = true)}
+				aria-label="Zarządzaj szablonami rachunków"
+				class="px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 border border-gray-600/50 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer flex items-center gap-2 active:scale-95"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+				</svg>
+				<span>Szablony</span>
+			</button>
 			<button
 				onclick={() => (showAddForm = !showAddForm)}
 				aria-label={showAddForm ? 'Anuluj dodawanie miesiąca' : 'Dodaj nowy miesiąc'}
@@ -63,19 +97,65 @@
 		</div>
 	{/if}
 
-	<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-		{#each $months as month (month.id)}
+	<SearchFiltersComponent filters={searchFilters} onFiltersChange={(f) => (searchFilters = f)} />
+
+	{#if true}
+		{@const filteredMonths = filterMonths($months, searchFilters)}
+		{@const stats = getSearchStats($months, searchFilters)}
+
+		{#if searchFilters.query.trim() !== '' || searchFilters.categoryIds.size > 0 || searchFilters.minAmount !== null || searchFilters.maxAmount !== null}
+		<div class="mb-6 p-4 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl border border-blue-500/20">
+			<div class="flex flex-wrap items-center gap-4 text-sm">
+				<div class="flex items-center gap-2">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+					</svg>
+					<span class="text-gray-300">Znaleziono:</span>
+					<span class="font-semibold text-white">{stats.totalBills} rachunków</span>
+				</div>
+				<div class="flex items-center gap-2">
+					<span class="text-gray-300">Łączna suma:</span>
+					<span class="font-semibold text-white">{stats.totalAmount.toFixed(2)} zł</span>
+				</div>
+				<div class="flex items-center gap-2">
+					<span class="text-gray-300">Średnia:</span>
+					<span class="font-semibold text-white">{stats.averageAmount.toFixed(2)} zł</span>
+				</div>
+			</div>
+		</div>
+	{/if}
+
+	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+		{#each filteredMonths as month (month.id)}
 			<MonthCard {month} />
 		{:else}
 			<div class="col-span-full text-center py-16">
 				<div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-800/50 mb-4">
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-					</svg>
+					{#if searchFilters.query.trim() !== '' || searchFilters.categoryIds.size > 0 || searchFilters.minAmount !== null || searchFilters.maxAmount !== null}
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+						</svg>
+					{:else}
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+						</svg>
+					{/if}
 				</div>
-				<p class="text-xl font-semibold text-gray-300 mb-2">Brak dodanych miesięcy</p>
-				<p class="text-sm text-gray-500">Kliknij "Dodaj Miesiąc", aby rozpocząć</p>
+				{#if searchFilters.query.trim() !== '' || searchFilters.categoryIds.size > 0 || searchFilters.minAmount !== null || searchFilters.maxAmount !== null}
+					<p class="text-xl font-semibold text-gray-300 mb-2">Brak wyników wyszukiwania</p>
+					<p class="text-sm text-gray-500">Spróbuj zmienić kryteria wyszukiwania</p>
+				{:else if $months.length === 0}
+					<p class="text-xl font-semibold text-gray-300 mb-2">Brak dodanych miesięcy</p>
+					<p class="text-sm text-gray-500">Kliknij "Dodaj Miesiąc", aby rozpocząć</p>
+				{:else}
+					<p class="text-xl font-semibold text-gray-300 mb-2">Brak dodanych miesięcy</p>
+					<p class="text-sm text-gray-500">Kliknij "Dodaj Miesiąc", aby rozpocząć</p>
+				{/if}
 			</div>
 		{/each}
-	</div>
+		</div>
+	{/if}
 </div>
+
+<ExportImportModal show={showExportImportModal} onClose={() => (showExportImportModal = false)} />
+<TemplateManager show={showTemplateManager} onClose={() => (showTemplateManager = false)} />
