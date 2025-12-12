@@ -1,14 +1,18 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { Chart, registerables, type ChartConfiguration } from 'chart.js';
-	import type { Month } from '$lib/types';
-	import { getChartLabels, getChartData, CHART_CONFIG, CHART_COLORS } from '$lib/utils/chartUtils';
+	import { onMount } from "svelte";
+	import { Chart, registerables, type ChartConfiguration } from "chart.js";
+	import type { Month } from "$lib/types";
+	import { getChartLabels, getChartData, CHART_CONFIG, CHART_COLORS } from "$lib/utils/chartUtils";
 
 	Chart.register(...registerables);
 
-	let { loadedMonths, chartType, datasetConfig }: {
+	let {
+		loadedMonths,
+		chartType,
+		datasetConfig,
+	}: {
 		loadedMonths: Month[];
-		chartType: 'line' | 'bar';
+		chartType: "line" | "bar";
 		datasetConfig: Record<string, unknown>;
 	} = $props();
 
@@ -25,13 +29,13 @@
 				labels,
 				datasets: [
 					{
-						label: 'Suma miesięczna',
+						label: "Suma miesięczna",
 						data,
-						...datasetConfig
-					}
-				]
+						...datasetConfig,
+					},
+				],
 			},
-			options: CHART_CONFIG
+			options: CHART_CONFIG,
 		};
 	}
 
@@ -55,7 +59,7 @@
 	onMount(() => {
 		if (!canvasElement) return;
 
-		const ctx = canvasElement.getContext('2d');
+		const ctx = canvasElement.getContext("2d");
 		if (!ctx) return;
 
 		const config = createChartConfig();
@@ -76,4 +80,3 @@
 <div class="w-full" style="height: 400px;">
 	<canvas bind:this={canvasElement}></canvas>
 </div>
-

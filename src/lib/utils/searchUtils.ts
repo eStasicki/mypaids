@@ -1,13 +1,13 @@
-import type { Month, Bill } from '../types';
-import { getMonthName } from './monthUtils';
+import type { Month, Bill } from "../types";
+import { getMonthName } from "./monthUtils";
 
 export interface SearchFilters {
 	query: string;
 	categoryIds: Set<string>;
 	minAmount: number | null;
 	maxAmount: number | null;
-	sortBy: 'date' | 'amount' | 'name';
-	sortOrder: 'asc' | 'desc';
+	sortBy: "date" | "amount" | "name";
+	sortOrder: "asc" | "desc";
 }
 
 export function filterBills(bills: Bill[], filters: SearchFilters): Bill[] {
@@ -16,15 +16,13 @@ export function filterBills(bills: Bill[], filters: SearchFilters): Bill[] {
 	// Filtrowanie po zapytaniu tekstowym
 	if (filters.query.trim()) {
 		const query = filters.query.toLowerCase().trim();
-		filtered = filtered.filter((bill) =>
-			bill.name.toLowerCase().includes(query)
-		);
+		filtered = filtered.filter((bill) => bill.name.toLowerCase().includes(query));
 	}
 
 	// Filtrowanie po kategoriach
 	if (filters.categoryIds.size > 0) {
-		filtered = filtered.filter((bill) =>
-			bill.categoryId && filters.categoryIds.has(bill.categoryId)
+		filtered = filtered.filter(
+			(bill) => bill.categoryId && filters.categoryIds.has(bill.categoryId)
 		);
 	}
 
@@ -40,14 +38,15 @@ export function filterBills(bills: Bill[], filters: SearchFilters): Bill[] {
 }
 
 export function filterMonths(months: Month[], filters: SearchFilters): Month[] {
-	const hasActiveFilters = filters.query.trim() !== '' || 
-		filters.categoryIds.size > 0 || 
-		filters.minAmount !== null || 
+	const hasActiveFilters =
+		filters.query.trim() !== "" ||
+		filters.categoryIds.size > 0 ||
+		filters.minAmount !== null ||
 		filters.maxAmount !== null;
 
 	const filtered = months.map((month) => ({
 		...month,
-		bills: filterBills(month.bills, filters)
+		bills: filterBills(month.bills, filters),
 	}));
 
 	const monthsToShow = hasActiveFilters
@@ -58,28 +57,31 @@ export function filterMonths(months: Month[], filters: SearchFilters): Month[] {
 		let comparison = 0;
 
 		switch (filters.sortBy) {
-			case 'date':
+			case "date":
 				comparison = a.date.getTime() - b.date.getTime();
 				break;
-			case 'amount':
+			case "amount":
 				const aTotal = a.bills.reduce((sum, bill) => sum + (bill.amount ?? 0), 0);
 				const bTotal = b.bills.reduce((sum, bill) => sum + (bill.amount ?? 0), 0);
 				comparison = aTotal - bTotal;
 				break;
-			case 'name':
+			case "name":
 				const aName = getMonthName(a.date);
 				const bName = getMonthName(b.date);
-				comparison = aName.localeCompare(bName, 'pl');
+				comparison = aName.localeCompare(bName, "pl");
 				break;
 		}
 
-		return filters.sortOrder === 'asc' ? comparison : -comparison;
+		return filters.sortOrder === "asc" ? comparison : -comparison;
 	});
 
 	return sorted;
 }
 
-export function getSearchStats(months: Month[], filters: SearchFilters): {
+export function getSearchStats(
+	months: Month[],
+	filters: SearchFilters
+): {
 	totalBills: number;
 	totalAmount: number;
 	averageAmount: number;
@@ -93,7 +95,6 @@ export function getSearchStats(months: Month[], filters: SearchFilters): {
 	return {
 		totalBills,
 		totalAmount,
-		averageAmount
+		averageAmount,
 	};
 }
-

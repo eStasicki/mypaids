@@ -1,6 +1,6 @@
-import type { Month, Bill } from '../types';
-import { getTotalForMonth } from './monthUtils';
-import { getCategoryById, DEFAULT_CATEGORIES } from './categoryUtils';
+import type { Month, Bill } from "../types";
+import { getTotalForMonth } from "./monthUtils";
+import { getCategoryById, DEFAULT_CATEGORIES } from "./categoryUtils";
 
 export interface BillStatistics {
 	bill: Bill;
@@ -39,15 +39,13 @@ export function getMostExpensiveBills(months: Month[], limit = 10): BillStatisti
 				allBills.push({
 					bill,
 					month,
-					totalInMonth
+					totalInMonth,
 				});
 			}
 		});
 	});
 
-	return allBills
-		.sort((a, b) => (b.bill.amount ?? 0) - (a.bill.amount ?? 0))
-		.slice(0, limit);
+	return allBills.sort((a, b) => (b.bill.amount ?? 0) - (a.bill.amount ?? 0)).slice(0, limit);
 }
 
 export function getCategoryStatistics(months: Month[]): CategoryStatistics[] {
@@ -59,7 +57,7 @@ export function getCategoryStatistics(months: Month[]): CategoryStatistics[] {
 				const current = categoryMap.get(bill.categoryId) || { total: 0, count: 0 };
 				categoryMap.set(bill.categoryId, {
 					total: current.total + bill.amount,
-					count: current.count + 1
+					count: current.count + 1,
 				});
 			}
 		});
@@ -70,7 +68,7 @@ export function getCategoryStatistics(months: Month[]): CategoryStatistics[] {
 			categoryId,
 			totalAmount: data.total,
 			averageAmount: data.count > 0 ? data.total / data.count : 0,
-			count: data.count
+			count: data.count,
 		}))
 		.sort((a, b) => b.totalAmount - a.totalAmount);
 }
@@ -94,7 +92,7 @@ export function getTrends(months: Month[]): TrendData[] {
 			month: month.date,
 			total,
 			change,
-			changePercent
+			changePercent,
 		});
 	});
 
@@ -116,13 +114,18 @@ export function getYearComparison(months: Month[]): YearComparison[] {
 		.map(([year, data]) => ({
 			year,
 			total: data.totals.reduce((sum, t) => sum + t, 0),
-			average: data.totals.length > 0 ? data.totals.reduce((sum, t) => sum + t, 0) / data.totals.length : 0,
-			monthCount: data.months.length
+			average:
+				data.totals.length > 0
+					? data.totals.reduce((sum, t) => sum + t, 0) / data.totals.length
+					: 0,
+			monthCount: data.months.length,
 		}))
 		.sort((a, b) => b.year - a.year);
 }
 
-export function getBillTypeAverage(months: Month[]): Array<{ name: string; average: number; count: number }> {
+export function getBillTypeAverage(
+	months: Month[]
+): Array<{ name: string; average: number; count: number }> {
 	const billMap = new Map<string, { total: number; count: number }>();
 
 	months.forEach((month) => {
@@ -131,7 +134,7 @@ export function getBillTypeAverage(months: Month[]): Array<{ name: string; avera
 				const current = billMap.get(bill.name) || { total: 0, count: 0 };
 				billMap.set(bill.name, {
 					total: current.total + bill.amount,
-					count: current.count + 1
+					count: current.count + 1,
 				});
 			}
 		});
@@ -141,8 +144,7 @@ export function getBillTypeAverage(months: Month[]): Array<{ name: string; avera
 		.map(([name, data]) => ({
 			name,
 			average: data.count > 0 ? data.total / data.count : 0,
-			count: data.count
+			count: data.count,
 		}))
 		.sort((a, b) => b.average - a.average);
 }
-

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { Month } from '$lib/types';
-	import BaseChart from './BaseChart.svelte';
-	import { CHART_COLORS } from '$lib/utils/chartUtils';
+	import type { Month } from "$lib/types";
+	import BaseChart from "./BaseChart.svelte";
+	import { CHART_COLORS } from "$lib/utils/chartUtils";
 
 	let { loadedMonths }: { loadedMonths: Month[] } = $props();
 
@@ -13,10 +13,9 @@
 		pointRadius: 4,
 		pointHoverRadius: 6,
 		pointBackgroundColor: CHART_COLORS.primary,
-		pointBorderColor: '#fff',
-		pointBorderWidth: 2
+		pointBorderColor: "#fff",
+		pointBorderWidth: 2,
 	};
 </script>
 
 <BaseChart {loadedMonths} chartType="line" {datasetConfig} />
-

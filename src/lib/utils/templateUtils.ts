@@ -1,6 +1,6 @@
-import type { BillTemplate, Bill } from '../types';
+import type { BillTemplate, Bill } from "../types";
 
-const STORAGE_KEY = 'mypaids-templates';
+const STORAGE_KEY = "mypaids-templates";
 
 export function loadTemplatesFromStorage(): BillTemplate[] {
 	try {
@@ -8,7 +8,7 @@ export function loadTemplatesFromStorage(): BillTemplate[] {
 		if (!stored) return [];
 		return JSON.parse(stored);
 	} catch (error) {
-		console.error('Failed to load templates from storage:', error);
+		console.error("Failed to load templates from storage:", error);
 		return [];
 	}
 }
@@ -17,17 +17,22 @@ export function saveTemplatesToStorage(templates: BillTemplate[]): void {
 	try {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
 	} catch (error) {
-		console.error('Failed to save templates to storage:', error);
+		console.error("Failed to save templates to storage:", error);
 	}
 }
 
-export function createTemplate(name: string, amount: number | null, categoryId?: string, autoAdd = false): BillTemplate {
+export function createTemplate(
+	name: string,
+	amount: number | null,
+	categoryId?: string,
+	autoAdd = false
+): BillTemplate {
 	return {
 		id: crypto.randomUUID(),
 		name: name.trim(),
 		amount,
 		categoryId: categoryId || undefined,
-		autoAdd
+		autoAdd,
 	};
 }
 
@@ -36,7 +41,6 @@ export function templateToBill(template: BillTemplate): Bill {
 		id: crypto.randomUUID(),
 		name: template.name,
 		amount: template.amount,
-		categoryId: template.categoryId
+		categoryId: template.categoryId,
 	};
 }
-

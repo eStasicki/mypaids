@@ -1,41 +1,41 @@
-import type { Month } from '../types';
+import type { Month } from "../types";
 
 export function exportToJSON(months: Month[]): string {
 	const data = months.map((m) => ({
 		...m,
-		date: m.date.toISOString()
+		date: m.date.toISOString(),
 	}));
 	return JSON.stringify(data, null, 2);
 }
 
 export function exportToCSV(months: Month[], t?: (key: string) => string): string {
 	const headers = [
-		t ? t('export.headers.date') : 'Data',
-		t ? t('export.headers.billName') : 'Nazwa Rachunku',
-		t ? t('export.headers.amount') : 'Kwota'
+		t ? t("export.headers.date") : "Data",
+		t ? t("export.headers.billName") : "Nazwa Rachunku",
+		t ? t("export.headers.amount") : "Kwota",
 	];
-	const rows: string[] = [headers.join(',')];
+	const rows: string[] = [headers.join(",")];
 
 	months.forEach((month) => {
-		const dateStr = month.date.toLocaleDateString('pl-PL');
+		const dateStr = month.date.toLocaleDateString("pl-PL");
 		if (month.bills.length === 0) {
 			rows.push(`${dateStr},,`);
 		} else {
 			month.bills.forEach((bill) => {
-				const amount = bill.amount !== null ? bill.amount.toFixed(2) : '';
+				const amount = bill.amount !== null ? bill.amount.toFixed(2) : "";
 				const name = `"${bill.name.replace(/"/g, '""')}"`;
 				rows.push(`${dateStr},${name},${amount}`);
 			});
 		}
 	});
 
-	return rows.join('\n');
+	return rows.join("\n");
 }
 
 export function downloadFile(content: string, filename: string, mimeType: string): void {
 	const blob = new Blob([content], { type: mimeType });
 	const url = URL.createObjectURL(blob);
-	const link = document.createElement('a');
+	const link = document.createElement("a");
 	link.href = url;
 	link.download = filename;
 	document.body.appendChild(link);
@@ -48,22 +48,24 @@ export function parseImportedJSON(content: string): Month[] {
 	try {
 		const parsed = JSON.parse(content);
 		if (!Array.isArray(parsed)) {
-			throw new Error('Invalid format: expected array');
+			throw new Error("Invalid format: expected array");
 		}
 		return parsed.map((m: any) => ({
 			...m,
 			date: new Date(m.date),
-			bills: m.bills || []
+			bills: m.bills || [],
 		}));
 	} catch (error) {
-		throw new Error(`Failed to parse JSON: ${error instanceof Error ? error.message : 'Unknown error'}`);
+		throw new Error(
+			`Failed to parse JSON: ${error instanceof Error ? error.message : "Unknown error"}`
+		);
 	}
 }
 
 export function parseImportedCSV(content: string): Month[] {
-	const lines = content.split('\n').filter((line) => line.trim());
+	const lines = content.split("\n").filter((line) => line.trim());
 	if (lines.length < 2) {
-		throw new Error('CSV file is empty or invalid');
+		throw new Error("CSV file is empty or invalid");
 	}
 
 	const monthsMap = new Map<string, Month>();
@@ -73,7 +75,7 @@ export function parseImportedCSV(content: string): Month[] {
 		if (!line) continue;
 
 		const parts: string[] = [];
-		let current = '';
+		let current = "";
 		let inQuotes = false;
 
 		for (let j = 0; j < line.length; j++) {
@@ -85,9 +87,9 @@ export function parseImportedCSV(content: string): Month[] {
 				} else {
 					inQuotes = !inQuotes;
 				}
-			} else if (char === ',' && !inQuotes) {
+			} else if (char === "," && !inQuotes) {
 				parts.push(current);
-				current = '';
+				current = "";
 			} else {
 				current += char;
 			}
@@ -103,14 +105,14 @@ export function parseImportedCSV(content: string): Month[] {
 		const name = nameStr.trim();
 		if (!name) continue;
 
-		const amount = amountStr.trim() === '' ? null : parseFloat(amountStr.trim().replace(',', '.'));
+		const amount = amountStr.trim() === "" ? null : parseFloat(amountStr.trim().replace(",", "."));
 
-		const dateKey = date.toISOString().split('T')[0];
+		const dateKey = date.toISOString().split("T")[0];
 		if (!monthsMap.has(dateKey)) {
 			monthsMap.set(dateKey, {
 				id: crypto.randomUUID(),
 				date,
-				bills: []
+				bills: [],
 			});
 		}
 
@@ -118,7 +120,7 @@ export function parseImportedCSV(content: string): Month[] {
 		month.bills.push({
 			id: crypto.randomUUID(),
 			name,
-			amount: isNaN(amount ?? 0) ? null : amount
+			amount: isNaN(amount ?? 0) ? null : amount,
 		});
 	}
 
@@ -126,15 +128,11 @@ export function parseImportedCSV(content: string): Month[] {
 }
 
 function parseDate(dateStr: string): Date | null {
-	const formats = [
-		/^\d{4}-\d{2}-\d{2}$/,
-		/^\d{2}\.\d{2}\.\d{4}$/,
-		/^\d{2}\/\d{2}\/\d{4}$/
-	];
+	const formats = [/^\d{4}-\d{2}-\d{2}$/, /^\d{2}\.\d{2}\.\d{4}$/, /^\d{2}\/\d{2}\/\d{4}$/];
 
 	for (const format of formats) {
 		if (format.test(dateStr)) {
-			const date = new Date(dateStr.replace(/\./g, '-').replace(/\//g, '-'));
+			const date = new Date(dateStr.replace(/\./g, "-").replace(/\//g, "-"));
 			if (!isNaN(date.getTime())) {
 				return date;
 			}
@@ -143,4 +141,3 @@ function parseDate(dateStr: string): Date | null {
 
 	return null;
 }
-
