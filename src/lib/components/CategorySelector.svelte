@@ -83,7 +83,7 @@
   {#if isOpen}
     <div
       bind:this={dropdownRef}
-      class="absolute top-full left-0 mt-2 z-[9999] bg-gray-800 border border-gray-700 rounded-lg shadow-xl max-w-max"
+      class="absolute top-full left-0 mt-2 z-9999 bg-gray-800 border border-gray-700 rounded-lg shadow-xl max-w-max"
     >
       {#each DEFAULT_CATEGORIES as category}
         <button
