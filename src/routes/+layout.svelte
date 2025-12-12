@@ -14,6 +14,7 @@
 	let title = $state("Moje Rachunki");
 	let showAuthModal = $state(false);
 	let showUserSettingsModal = $state(false);
+	let currentUser = $derived($user);
 
 	function openAuthModal() {
 		showAuthModal = true;
@@ -36,8 +37,10 @@
 </svelte:head>
 
 <div class="min-h-screen bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 text-gray-100">
-	<Sidebar showUserSettingsModal={showUserSettingsModal} onUserSettingsOpen={() => (showUserSettingsModal = true)} />
-	<main class="lg:ml-64">
+	{#if currentUser}
+		<Sidebar showUserSettingsModal={showUserSettingsModal} onUserSettingsOpen={() => (showUserSettingsModal = true)} />
+	{/if}
+	<main class="{currentUser ? 'lg:ml-64' : ''}">
 		{@render children()}
 	</main>
 	<AuthModal bind:isOpen={showAuthModal} />
