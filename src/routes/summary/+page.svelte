@@ -1,11 +1,13 @@
 <script lang="ts">
-	import { months } from "$lib/stores";
+	import { months, user } from "$lib/stores";
 	import { onMount } from "svelte";
 	import LineChart from "$lib/components/charts/LineChart.svelte";
 	import BarChart from "$lib/components/charts/BarChart.svelte";
 	import AreaChart from "$lib/components/charts/AreaChart.svelte";
 	import type { Month } from "$lib/types";
-	import { loadMonthsFromStorage } from "$lib/utils/storageUtils";
+	import { loadMonthsFromSupabase } from "$lib/utils/supabaseUtils";
+	import { browser } from "$app/environment";
+	import { goto } from "$app/navigation";
 	import {
 		getTotalForAllMonths,
 		getAveragePerMonth,
@@ -15,6 +17,8 @@
 	} from "$lib/utils/monthUtils";
 	import { DEFAULT_CATEGORIES, getCategoryById } from "$lib/utils/categoryUtils";
 	import { getCategoryTotals } from "$lib/utils/chartUtils";
+	import { t } from "$lib/utils/i18n";
+	import { tick } from "svelte";
 	import {
 		getMostExpensiveBills,
 		getCategoryStatistics,
@@ -31,10 +35,43 @@
 	let selectedCategories = $state<Set<string>>(new Set());
 	let showCategoryFilter = $state(false);
 	let showDetailedStats = $state(false);
+	let detailedStatsRef: HTMLElement | null = $state(null);
+	let currentUser = $derived($user);
 
-	onMount(() => {
-		const loaded = loadMonthsFromStorage();
-		loadedMonths = sortMonthsByDate(loaded, true);
+	if (browser) {
+		$effect(() => {
+			if (!currentUser) {
+				goto("/");
+			}
+		});
+	}
+
+	onMount(async () => {
+		if (browser) {
+			try {
+				const loaded = await loadMonthsFromSupabase();
+				loadedMonths = sortMonthsByDate(loaded, true);
+
+				if (selectedYears.size === 0 && loadedMonths.length > 0) {
+					const availableYears = new Set(loadedMonths.map((m) => m.date.getFullYear()));
+					selectedYears = availableYears;
+				}
+
+				if (selectedCategories.size === 0) {
+					const allCategoryIds = new Set<string>();
+					loadedMonths.forEach((month) => {
+						month.bills.forEach((bill) => {
+							if (bill.categoryId) {
+								allCategoryIds.add(bill.categoryId);
+							}
+						});
+					});
+					selectedCategories = allCategoryIds;
+				}
+			} catch (error) {
+				console.error("Failed to load months from Supabase:", error);
+			}
+		}
 
 		const unsubscribe = months.subscribe((value) => {
 			const sorted = sortMonthsByDate(value, true);
@@ -139,6 +176,23 @@
 	function deselectAllYears() {
 		selectedYears = new Set();
 	}
+
+	$effect(() => {
+		if (showDetailedStats && browser) {
+			tick().then(() => {
+				if (detailedStatsRef) {
+					setTimeout(() => {
+						const elementTop = detailedStatsRef.getBoundingClientRect().top + window.pageYOffset;
+						const offset = 100;
+						window.scrollTo({
+							top: elementTop - offset,
+							behavior: "smooth"
+						});
+					}, 200);
+				}
+			});
+		}
+	});
 </script>
 
 <div class="container mx-auto px-4 py-8 max-w-7xl">
@@ -289,7 +343,7 @@
 				</div>
 				<div class="flex flex-wrap gap-3">
 					{#each getAvailableCategoryIds() as categoryId}
-						{@const category = getCategoryById(categoryId)}
+						{@const category = getCategoryById(categoryId, t)}
 						{#if category}
 							<label
 								class="flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-200 cursor-pointer {selectedCategories.has(
@@ -417,7 +471,7 @@
 			<div class="mb-6">
 				<h3 class="text-lg font-semibold text-white mb-4">Podsumowanie według kategorii</h3>
 				<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
-					{#each getCategoryTotals(getFilteredMonths()) as { category, total }}
+					{#each getCategoryTotals(getFilteredMonths(), t) as { category, total }}
 						<div
 							class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/50"
 							style="border-left: 4px solid {category.color};"
@@ -451,7 +505,7 @@
 		{@const yearComparison = getYearComparison(filtered)}
 		{@const billTypeAverages = getBillTypeAverage(filtered)}
 
-		<div class="mt-8 space-y-6">
+		<div bind:this={detailedStatsRef} class="mt-8 space-y-6">
 			<h2 class="text-3xl font-bold text-white mb-6">Szczegółowe statystyki</h2>
 
 			<!-- Najdroższe rachunki -->
@@ -467,7 +521,7 @@
 							>
 								<div class="flex items-center gap-3">
 									{#if item.bill.categoryId}
-										{@const category = getCategoryById(item.bill.categoryId)}
+										{@const category = getCategoryById(item.bill.categoryId, t)}
 										{#if category}
 											<span class="text-xl">{category.icon}</span>
 										{/if}
@@ -504,7 +558,7 @@
 					<h3 class="text-xl font-semibold text-white mb-4">Statystyki według kategorii</h3>
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 						{#each categoryStats as stat}
-							{@const category = getCategoryById(stat.categoryId)}
+							{@const category = getCategoryById(stat.categoryId, t)}
 							{#if category}
 								<div
 									class="p-4 bg-gray-700/30 rounded-lg border border-gray-600/50"

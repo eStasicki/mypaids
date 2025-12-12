@@ -7,6 +7,7 @@
 	import { DEFAULT_CATEGORIES, getCategoryById } from "$lib/utils/categoryUtils";
 	import { templateToBill } from "$lib/utils/templateUtils";
 	import type { BillTemplate } from "$lib/types";
+	import { t } from "$lib/utils/i18n";
 
 	let { month }: { month: Month } = $props();
 
@@ -121,7 +122,7 @@
 								onSelect={(categoryId) => updateBill(bill.id, "categoryId", categoryId)}
 							/>
 						{:else}
-							{@const category = bill.categoryId ? getCategoryById(bill.categoryId) : null}
+							{@const category = bill.categoryId ? getCategoryById(bill.categoryId, t) : null}
 							{#if category}
 								<button
 									onclick={() => (editingId = bill.id)}

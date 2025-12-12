@@ -1,8 +1,10 @@
 <script lang="ts">
 	import AuthButton from "./AuthButton.svelte";
+	import DevLoginForm from "./DevLoginForm.svelte";
 	import { user } from "$lib/stores";
 	import { browser } from "$app/environment";
-	import { onMount } from "svelte";
+	import { isDevMode } from "$lib/supabase/handlers";
+	import { goto } from "$app/navigation";
 
 	let { isOpen = $bindable(false) }: { isOpen: boolean } = $props();
 
@@ -14,6 +16,8 @@
 		$effect(() => {
 			if (currentUser) {
 				isOpen = false;
+				// Redirect to my-paids after login
+				goto("/my-paids");
 			}
 		});
 
@@ -104,19 +108,32 @@
 				</button>
 			</div>
 
-			<div class="space-y-3" role="group" aria-label="Opcje logowania">
-				<AuthButton provider="google" />
-				<AuthButton provider="github" />
-				<AuthButton provider="facebook" />
-				<AuthButton provider="twitter" />
-				<AuthButton provider="discord" />
-			</div>
-
-			<div class="mt-6 pt-6 border-t border-gray-700/50">
-				<p class="text-xs text-gray-500 text-center">
-					Kontynuując, akceptujesz nasze warunki użytkowania i politykę prywatności
-				</p>
-			</div>
+			{#if isDevMode()}
+				<DevLoginForm />
+				<div class="mt-6 pt-6 border-t border-gray-700/50">
+					<p class="text-xs text-gray-400 text-center mb-4">Lub zaloguj się przez:</p>
+					<div class="space-y-3" role="group" aria-label="Opcje logowania OAuth">
+						<AuthButton provider="google" />
+						<AuthButton provider="github" />
+						<AuthButton provider="facebook" />
+						<AuthButton provider="twitter" />
+						<AuthButton provider="discord" />
+					</div>
+				</div>
+			{:else}
+				<div class="space-y-3" role="group" aria-label="Opcje logowania">
+					<AuthButton provider="google" />
+					<AuthButton provider="github" />
+					<AuthButton provider="facebook" />
+					<AuthButton provider="twitter" />
+					<AuthButton provider="discord" />
+				</div>
+				<div class="mt-6 pt-6 border-t border-gray-700/50">
+					<p class="text-xs text-gray-500 text-center">
+						Kontynuując, akceptujesz nasze warunki użytkowania i politykę prywatności
+					</p>
+				</div>
+			{/if}
 		</div>
 	</div>
 {/if}

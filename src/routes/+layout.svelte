@@ -4,13 +4,66 @@
 	import { _ } from "svelte-i18n";
 	import { browser } from "$app/environment";
 	import AuthModal from "$lib/components/AuthModal.svelte";
+	import UserSettingsModal from "$lib/components/UserSettingsModal.svelte";
 	import { user } from "$lib/stores";
+	import { getProfile } from "$lib/supabase/handlers";
+	import { onMount } from "svelte";
 
 	let { children } = $props();
 
 	let title = $state("Moje Rachunki");
 	let showAuthModal = $state(false);
+	let showUserSettingsModal = $state(false);
 	let currentUser = $derived($user);
+	let userProfile = $state<any>(null);
+
+	async function loadUserProfile() {
+		if (!currentUser) {
+			userProfile = null;
+			return;
+		}
+
+		try {
+			const profile = await getProfile();
+			userProfile = profile;
+		} catch (err: any) {
+			// Silently handle auth errors (user logged out)
+			if (err?.message && (err.message.includes("Auth session missing") || err.message.includes("must be authenticated"))) {
+				userProfile = null;
+				return;
+			}
+			// Only log other errors
+			if (err?.message) {
+				console.error("Failed to load user profile:", err);
+			}
+			userProfile = null;
+		}
+	}
+
+	if (browser) {
+		$effect(() => {
+			if (currentUser) {
+				loadUserProfile();
+			} else {
+				userProfile = null;
+			}
+		});
+
+		// Listen for profile updates from UserSettingsModal
+		$effect(() => {
+			const handleProfileUpdate = () => {
+				if (currentUser) {
+					loadUserProfile();
+				}
+			};
+			
+			window.addEventListener("profile-updated", handleProfileUpdate);
+			
+			return () => {
+				window.removeEventListener("profile-updated", handleProfileUpdate);
+			};
+		});
+	}
 
 	function openAuthModal() {
 		showAuthModal = true;
@@ -33,28 +86,9 @@
 </svelte:head>
 
 <div class="min-h-screen bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 text-gray-100">
-	<header class="container mx-auto px-4 py-4 max-w-7xl flex justify-between items-center">
-		<h1 class="text-2xl font-bold">{title}</h1>
-		<div class="flex items-center gap-4">
-			{#if currentUser}
-				<div class="flex items-center gap-2">
-					<div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-						{currentUser.email?.charAt(0).toUpperCase() || "U"}
-					</div>
-					<span class="text-sm text-gray-300">{currentUser.email}</span>
-				</div>
-			{:else}
-				<button
-					onclick={openAuthModal}
-					class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 cursor-pointer"
-				>
-					Zaloguj się
-				</button>
-			{/if}
-		</div>
-	</header>
 	<main>
 		{@render children()}
 	</main>
 	<AuthModal bind:isOpen={showAuthModal} />
+	<UserSettingsModal bind:isOpen={showUserSettingsModal} />
 </div>

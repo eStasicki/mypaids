@@ -17,16 +17,18 @@
 		"db:pull": "dotenv -e .env -- supabase db pull",
 		"db:reset": "dotenv -e .env -- supabase db reset",
 		"db:types": "dotenv -e .env -- supabase gen types typescript --local > src/lib/supabase/types.ts",
-		"db:types:remote": "echo \"$SUPABASE_DB_PASSWORD\" | dotenv -e .env -- supabase gen types typescript --linked > src/lib/supabase/types.ts"
+		"db:types:remote": "echo \"$SUPABASE_DB_PASSWORD\" | dotenv -e .env -- supabase gen types typescript --linked > src/lib/supabase/types.ts",
+		"db:seed:demo": "node scripts/seed-demo-simple.js"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.0",
 		"@sveltejs/kit": "^2.48.5",
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"@tailwindcss/postcss": "^4.1.18",
+		"@types/aos": "^3.0.7",
 		"autoprefixer": "^10.4.22",
-		"postcss": "^8.5.6",
 		"dotenv-cli": "^7.4.2",
+		"postcss": "^8.5.6",
 		"prettier": "^3.7.4",
 		"prettier-plugin-svelte": "^3.4.0",
 		"supabase": "^1.200.0",
@@ -40,10 +42,12 @@
 		"@supabase/ssr": "^0.8.0",
 		"@supabase/supabase-js": "^2.87.1",
 		"@types/jspdf": "^1.3.3",
+		"aos": "^2.3.4",
 		"chart.js": "^4.5.1",
 		"jspdf": "^3.0.4",
 		"jspdf-autotable": "^5.0.2",
 		"pdfmake": "^0.2.20",
-		"svelte-i18n": "^4.0.1"
+		"svelte-i18n": "^4.0.1",
+		"svrollbar": "^0.12.0"
 	}
 }

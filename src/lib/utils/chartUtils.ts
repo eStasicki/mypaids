@@ -1,6 +1,6 @@
 import type { Month } from "../types";
 import { getTotalForMonth } from "./monthUtils";
-import { DEFAULT_CATEGORIES, type Category } from "./categoryUtils";
+import { DEFAULT_CATEGORIES, getCategories, type Category } from "./categoryUtils";
 
 export function getChartLabels(months: Month[]): string[] {
 	return months.map((m) => m.date.toLocaleDateString("pl-PL", { month: "short", year: "numeric" }));
@@ -24,7 +24,7 @@ export function getChartDataByCategory(months: Month[]): Record<string, number[]
 	return categoryData;
 }
 
-export function getCategoryTotals(months: Month[]): Array<{ category: Category; total: number }> {
+export function getCategoryTotals(months: Month[], t?: (key: string) => string): Array<{ category: Category; total: number }> {
 	const totals = new Map<string, number>();
 
 	months.forEach((month) => {
@@ -36,7 +36,9 @@ export function getCategoryTotals(months: Month[]): Array<{ category: Category; 
 		});
 	});
 
-	return DEFAULT_CATEGORIES.map((category) => ({
+	const categories = t ? getCategories(t) : DEFAULT_CATEGORIES;
+
+	return categories.map((category) => ({
 		category,
 		total: totals.get(category.id) || 0,
 	}))
