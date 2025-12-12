@@ -12,6 +12,7 @@
 		MONTH_NAMES,
 	} from "$lib/utils/monthUtils";
 	import { NEW_CARD_ANIMATION_DURATION, DATE_RANGES } from "$lib/utils/constants";
+	import { deleteMonthFromSupabase } from "$lib/utils/supabaseUtils";
 
 	let { month }: { month: Month } = $props();
 	let showDeleteModal = $state(false);
@@ -45,9 +46,15 @@
 		showDeleteModal = true;
 	}
 
-	function confirmDelete() {
-		months.update((ms) => ms.filter((m) => m.id !== month.id));
-		showDeleteModal = false;
+	async function confirmDelete() {
+		try {
+			await deleteMonthFromSupabase(month.id);
+			months.update((ms) => ms.filter((m) => m.id !== month.id));
+			showDeleteModal = false;
+		} catch (error) {
+			console.error("Failed to delete month from Supabase:", error);
+			alert(`Nie udało się usunąć miesiąca: ${error instanceof Error ? error.message : String(error)}`);
+		}
 	}
 
 	function cancelDelete() {

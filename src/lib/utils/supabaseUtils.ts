@@ -142,10 +142,114 @@ export async function saveBillToSupabase(bill: Bill, monthId: string): Promise<v
 
 export async function deleteBillFromSupabase(billId: string): Promise<void> {
 	const supabase = createClient();
-	const { error } = await supabase.from("bills").delete().eq("id", billId);
+	
+	console.log("[deleteBillFromSupabase] Starting deletion for bill ID:", billId);
+	console.log("[deleteBillFromSupabase] Bill ID type:", typeof billId);
+	console.log("[deleteBillFromSupabase] Bill ID length:", billId?.length);
+	
+	const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+	if (authError) {
+		console.error("[deleteBillFromSupabase] Auth error:", authError);
+		throw new Error(`Authentication error: ${authError.message}`);
+	}
+
+	if (!user) {
+		console.error("[deleteBillFromSupabase] User not authenticated");
+		throw new Error("User not authenticated");
+	}
+
+	console.log("[deleteBillFromSupabase] User authenticated:", user.id);
+
+	const { data: billData, error: billError } = await supabase
+		.from("bills")
+		.select("id, month_id, name")
+		.eq("id", billId)
+		.single();
+
+	if (billError) {
+		console.error("[deleteBillFromSupabase] Error checking bill existence:", billError);
+		console.error("[deleteBillFromSupabase] Check error code:", billError.code);
+		console.error("[deleteBillFromSupabase] Check error message:", billError.message);
+		throw new Error(`Bill not found or access denied: ${billError.message}`);
+	}
+
+	if (!billData) {
+		console.error("[deleteBillFromSupabase] Bill not found with ID:", billId);
+		throw new Error("Bill not found");
+	}
+
+	console.log("[deleteBillFromSupabase] Bill found:", billData);
+
+	const { data: monthData, error: monthError } = await supabase
+		.from("months")
+		.select("id, user_id")
+		.eq("id", billData.month_id)
+		.single();
+
+	if (monthError) {
+		console.error("[deleteBillFromSupabase] Error checking month:", monthError);
+		throw new Error(`Month not found: ${monthError.message}`);
+	}
+
+	if (!monthData) {
+		console.error("[deleteBillFromSupabase] Month not found for bill:", billData.month_id);
+		throw new Error("Month not found");
+	}
+
+	if (monthData.user_id !== user.id) {
+		console.error("[deleteBillFromSupabase] User does not own this month. User ID:", user.id, "Month user_id:", monthData.user_id);
+		throw new Error("You do not have permission to delete this bill");
+	}
+
+	console.log("[deleteBillFromSupabase] Permission verified. Deleting bill...");
+	console.log("[deleteBillFromSupabase] Deleting bill with ID:", billId, "from month:", billData.month_id);
+	console.log("[deleteBillFromSupabase] About to execute: DELETE FROM bills WHERE id =", billId);
+
+	const deleteQuery = supabase
+		.from("bills")
+		.delete()
+		.eq("id", billId)
+		.select();
+
+	console.log("[deleteBillFromSupabase] Delete query prepared, executing...");
+
+	const { error, data } = await deleteQuery;
+
+	console.log("[deleteBillFromSupabase] Delete query executed");
+	console.log("[deleteBillFromSupabase] Error:", error);
+	console.log("[deleteBillFromSupabase] Data:", data);
+	console.log("[deleteBillFromSupabase] Data type:", typeof data);
+	console.log("[deleteBillFromSupabase] Data length:", data?.length);
 
 	if (error) {
+		console.error("[deleteBillFromSupabase] Error deleting bill:", error);
+		console.error("[deleteBillFromSupabase] Error code:", error.code);
+		console.error("[deleteBillFromSupabase] Error message:", error.message);
+		console.error("[deleteBillFromSupabase] Error details:", error.details);
+		console.error("[deleteBillFromSupabase] Error hint:", error.hint);
 		throw error;
 	}
+
+	if (!data || data.length === 0) {
+		console.error("[deleteBillFromSupabase] ⚠️ CRITICAL: No bill was deleted! This indicates RLS policy issue.");
+		console.error("[deleteBillFromSupabase] Attempted to delete bill ID:", billId);
+		console.error("[deleteBillFromSupabase] Month ID:", billData.month_id);
+		console.error("[deleteBillFromSupabase] User ID:", user.id);
+		console.error("[deleteBillFromSupabase] Month user_id:", monthData.user_id);
+		
+		const { data: verifyBill } = await supabase
+			.from("bills")
+			.select("id, month_id, name")
+			.eq("id", billId)
+			.single();
+		
+		console.error("[deleteBillFromSupabase] Bill still exists in database:", verifyBill);
+		
+		throw new Error("No bill was deleted. This may indicate an RLS policy issue. Check console for details.");
+	}
+
+	console.log("[deleteBillFromSupabase] ✅ Bill deleted successfully:", data);
+	console.log("[deleteBillFromSupabase] Deleted bill count:", data.length);
 }
 

@@ -8,6 +8,7 @@
 	import { templateToBill } from "$lib/utils/templateUtils";
 	import type { BillTemplate } from "$lib/types";
 	import { t } from "$lib/utils/i18n";
+	import { deleteBillFromSupabase } from "$lib/utils/supabaseUtils";
 
 	let { month }: { month: Month } = $props();
 
@@ -72,12 +73,27 @@
 		);
 	}
 
-	function deleteBill(billId: string) {
-		months.update((ms) =>
-			ms.map((m) =>
-				m.id === month.id ? { ...m, bills: m.bills.filter((b) => b.id !== billId) } : m
-			)
-		);
+	async function deleteBill(billId: string) {
+		console.log("Attempting to delete bill with ID:", billId);
+		console.log("Bill ID type:", typeof billId);
+		console.log("Bill ID length:", billId.length);
+		
+		try {
+			const result = await deleteBillFromSupabase(billId);
+			console.log("Delete result:", result);
+			
+			months.update((ms) =>
+				ms.map((m) =>
+					m.id === month.id ? { ...m, bills: m.bills.filter((b) => b.id !== billId) } : m
+				)
+			);
+			
+			console.log("Bill deleted successfully from UI");
+		} catch (error) {
+			console.error("Failed to delete bill from Supabase:", error);
+			console.error("Error details:", JSON.stringify(error, null, 2));
+			alert(`Nie udało się usunąć rachunku: ${error instanceof Error ? error.message : String(error)}`);
+		}
 	}
 
 	function handleKeydown(event: KeyboardEvent, billId?: string) {
