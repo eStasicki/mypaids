@@ -13,11 +13,11 @@ if (typeof pdfMake !== "undefined" && pdfMake.vfs === undefined) {
  * Generuje PDF raport dla wybranych miesięcy z profesjonalnym, księgowym wyglądem
  * Używa pdfmake z pełnym wsparciem Unicode dla polskich znaków
  */
-export function generatePDFReport(
+export async function generatePDFReport(
 	months: Month[],
 	title?: string,
 	t?: (key: string) => string
-): void {
+): Promise<void> {
 	const defaultTitle = t ? t("pdf.title") : "Raport Rachunków";
 	const reportTitle = title || defaultTitle;
 	const sortedMonths = [...months].sort((a, b) => a.date.getTime() - b.date.getTime());
@@ -62,7 +62,7 @@ export function generatePDFReport(
 				style: "subheader",
 				margin: [0, 0, 0, 20],
 			},
-			...sortedMonths.map((month, index) => {
+			...(await Promise.all(sortedMonths.map(async (month, index) => {
 				const monthName = getMonthName(month.date, t);
 				const year = month.date.getFullYear();
 				const total = getTotalForMonth(month);
@@ -96,8 +96,8 @@ export function generatePDFReport(
 							color: "#ffffff",
 						},
 					],
-					...month.bills.map((bill, billIndex) => {
-						const category = bill.categoryId ? getCategoryById(bill.categoryId, t) : null;
+					...(await Promise.all(month.bills.map(async (bill, billIndex) => {
+						const category = bill.categoryId ? await getCategoryById(bill.categoryId, t) : null;
 						const categoryName = category?.name || "-";
 						const currency = t ? t("bills.currency") : "zł";
 						const amount = bill.amount !== null ? `${bill.amount.toFixed(2)} ${currency}` : "-";
@@ -117,7 +117,7 @@ export function generatePDFReport(
 								fillColor: billIndex % 2 === 0 ? "#ffffff" : "#f9fafb",
 							},
 						];
-					}),
+					})))
 				];
 
 				if (month.bills.length === 0) {
@@ -221,7 +221,7 @@ export function generatePDFReport(
 							: []),
 					],
 				};
-			}),
+			}))),
 			...(sortedMonths.length > 1
 				? [
 						{ text: "", pageBreak: "before" },

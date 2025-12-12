@@ -1,3 +1,5 @@
+import { createClient } from "$lib/supabase/client";
+
 export interface Category {
 	id: string;
 	name: string;
@@ -9,6 +11,16 @@ export interface CategoryData {
 	id: string;
 	color: string;
 	icon: string;
+}
+
+export interface UserCategory {
+	id: string;
+	user_id: string;
+	name: string;
+	icon: string;
+	color: string;
+	created_at: string;
+	updated_at: string;
 }
 
 export const DEFAULT_CATEGORIES_DATA: CategoryData[] = [
@@ -54,11 +66,130 @@ export const DEFAULT_CATEGORIES_DATA: CategoryData[] = [
 	},
 ];
 
-export function getCategories(t: (key: string) => string): Category[] {
-	return DEFAULT_CATEGORIES_DATA.map((cat) => ({
+export const AVAILABLE_ICONS = [
+	"⚡", "💧", "🔥", "🌐", "🗑️", "🛡️", "📋", "🏠", "🚗", "🍔",
+	"☕", "📱", "💻", "🎮", "📺", "🎵", "📚", "✈️", "🏋️", "💊",
+	"🎁", "💳", "💰", "📊", "🔧", "🌳", "🎨", "📷", "🎬", "🏥"
+];
+
+export async function loadUserCategories(): Promise<Category[]> {
+	const supabase = createClient();
+	const { data: { user } } = await supabase.auth.getUser();
+
+	if (!user) {
+		return [];
+	}
+
+	const { data, error } = await supabase
+		.from("user_categories")
+		.select("*")
+		.eq("user_id", user.id)
+		.order("created_at", { ascending: true });
+
+	if (error) {
+		console.error("Error loading user categories:", error);
+		return [];
+	}
+
+	return (data || []).map((cat) => ({
+		id: cat.id,
+		name: cat.name,
+		color: cat.color,
+		icon: cat.icon,
+	}));
+}
+
+export async function createUserCategory(name: string, icon: string, color: string): Promise<Category | null> {
+	const supabase = createClient();
+	const { data: { user } } = await supabase.auth.getUser();
+
+	if (!user) {
+		throw new Error("User not authenticated");
+	}
+
+	const { data, error } = await supabase
+		.from("user_categories")
+		.insert({
+			user_id: user.id,
+			name: name.trim(),
+			icon,
+			color,
+		})
+		.select()
+		.single();
+
+	if (error) {
+		throw error;
+	}
+
+	return {
+		id: data.id,
+		name: data.name,
+		color: data.color,
+		icon: data.icon,
+	};
+}
+
+export async function updateUserCategory(id: string, name: string, icon: string, color: string): Promise<Category | null> {
+	const supabase = createClient();
+	const { data: { user } } = await supabase.auth.getUser();
+
+	if (!user) {
+		throw new Error("User not authenticated");
+	}
+
+	const { data, error } = await supabase
+		.from("user_categories")
+		.update({
+			name: name.trim(),
+			icon,
+			color,
+		})
+		.eq("id", id)
+		.eq("user_id", user.id)
+		.select()
+		.single();
+
+	if (error) {
+		throw error;
+	}
+
+	return {
+		id: data.id,
+		name: data.name,
+		color: data.color,
+		icon: data.icon,
+	};
+}
+
+export async function deleteUserCategory(id: string): Promise<void> {
+	const supabase = createClient();
+	const { data: { user } } = await supabase.auth.getUser();
+
+	if (!user) {
+		throw new Error("User not authenticated");
+	}
+
+	const { error } = await supabase
+		.from("user_categories")
+		.delete()
+		.eq("id", id)
+		.eq("user_id", user.id);
+
+	if (error) {
+		throw error;
+	}
+}
+
+export async function getCategories(t: (key: string) => string): Promise<Category[]> {
+	const defaultCategories = DEFAULT_CATEGORIES_DATA.map((cat) => ({
 		...cat,
 		name: t(`categories.${cat.id}`),
 	}));
+
+	const userCategories = await loadUserCategories();
+
+	return [...defaultCategories, ...userCategories];
 }
 
 export const DEFAULT_CATEGORIES: Category[] = DEFAULT_CATEGORIES_DATA.map((cat) => ({
@@ -66,17 +197,24 @@ export const DEFAULT_CATEGORIES: Category[] = DEFAULT_CATEGORIES_DATA.map((cat) 
 	name: cat.id,
 }));
 
-export function getCategoryById(id: string, t?: (key: string) => string): Category | undefined {
-	if (t) {
-		const data = DEFAULT_CATEGORIES_DATA.find((cat) => cat.id === id);
-		if (data) {
-			return {
-				...data,
-				name: t(`categories.${id}`),
-			};
+export async function getCategoryById(id: string, t?: (key: string) => string): Promise<Category | undefined> {
+	const isDefaultCategory = DEFAULT_CATEGORIES_DATA.some((cat) => cat.id === id);
+
+	if (isDefaultCategory) {
+		if (t) {
+			const data = DEFAULT_CATEGORIES_DATA.find((cat) => cat.id === id);
+			if (data) {
+				return {
+					...data,
+					name: t(`categories.${id}`),
+				};
+			}
 		}
+		return DEFAULT_CATEGORIES.find((cat) => cat.id === id);
 	}
-	return DEFAULT_CATEGORIES.find((cat) => cat.id === id);
+
+	const userCategories = await loadUserCategories();
+	return userCategories.find((cat) => cat.id === id);
 }
 
 export function getCategoryColor(id: string): string {
@@ -84,12 +222,9 @@ export function getCategoryColor(id: string): string {
 	return category?.color || DEFAULT_CATEGORIES_DATA[DEFAULT_CATEGORIES_DATA.length - 1].color;
 }
 
-export function getCategoryName(id: string, t?: (key: string) => string): string {
-	if (t) {
-		return t(`categories.${id}`) || id;
-	}
-	const category = getCategoryById(id);
-	return category?.name || DEFAULT_CATEGORIES[DEFAULT_CATEGORIES.length - 1].name;
+export async function getCategoryName(id: string, t?: (key: string) => string): Promise<string> {
+	const category = await getCategoryById(id, t);
+	return category?.name || (t ? t(`categories.${id}`) || id : id);
 }
 
 export function getCategoryIcon(id: string): string {

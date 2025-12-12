@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getCategories, DEFAULT_CATEGORIES, type Category } from "$lib/utils/categoryUtils";
+	import CategoryManager from "./CategoryManager.svelte";
 	import { _ } from "svelte-i18n";
 	import { get } from "svelte/store";
 	import { browser } from "$app/environment";
@@ -13,27 +14,38 @@
 	let containerRef: HTMLDivElement | null = $state(null);
 	let buttonRef: HTMLButtonElement | null = $state(null);
 	let dropdownRef: HTMLDivElement | null = $state(null);
+	let categoryManagerKey = $state(0);
 
 	let categories = $state<Category[]>(DEFAULT_CATEGORIES);
+	let isLoading = $state(false);
+
+	async function loadCategories() {
+		if (!browser) return;
+		isLoading = true;
+		try {
+			categories = await getCategories((key: string) => {
+				try {
+					return get(_)(key) || key.split(".").pop() || key;
+				} catch {
+					return key.split(".").pop() || key;
+				}
+			});
+		} catch {
+			categories = DEFAULT_CATEGORIES;
+		} finally {
+			isLoading = false;
+		}
+	}
 
 	$effect(() => {
-		if (browser) {
-			try {
-				categories = getCategories((key: string) => {
-					try {
-						return get(_)(key) || key.split(".").pop() || key;
-					} catch {
-						return key.split(".").pop() || key;
-					}
-				});
-			} catch {
-				categories = DEFAULT_CATEGORIES;
-			}
-		}
+		loadCategories();
 	});
 
 	function toggleDropdown() {
 		isOpen = !isOpen;
+		if (isOpen) {
+			loadCategories();
+		}
 	}
 
 	function selectCategory(categoryId: string) {
@@ -41,12 +53,21 @@
 		isOpen = false;
 	}
 
+	function handleCategoryManagerClose() {
+		categoryManagerKey++;
+		loadCategories();
+	}
+
 	function handleClickOutside(event: MouseEvent) {
+		const target = event.target as HTMLElement;
+		if (target.closest(".category-manager-trigger") || target.closest(".category-manager-modal")) {
+			return;
+		}
 		if (
 			containerRef &&
-			!containerRef.contains(event.target as Node) &&
+			!containerRef.contains(target) &&
 			dropdownRef &&
-			!dropdownRef.contains(event.target as Node)
+			!dropdownRef.contains(target)
 		) {
 			isOpen = false;
 		}
@@ -97,42 +118,58 @@
 	{#if isOpen}
 		<div
 			bind:this={dropdownRef}
-			class="absolute top-full left-0 mt-2 z-9999 bg-gray-800 border border-gray-700 rounded-lg shadow-xl max-w-max"
+			class="absolute top-full left-0 mt-2 z-9999 bg-gray-800 border border-gray-700 rounded-lg shadow-xl max-w-max min-w-[200px]"
 		>
-			{#each categories as category}
-				<button
-					type="button"
-					onclick={() => selectCategory(category.id)}
-					aria-label={t(
-						"searchFilters.selectCategory",
-						`Zaznacz kategorię ${category.name}`
-					).replace("{name}", category.name)}
-					class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-700/50 transition-colors text-left cursor-pointer {selectedCategoryId ===
-					category.id
-						? 'bg-gray-700/30'
-						: ''}"
-				>
-					<span class="text-lg">{category.icon}</span>
-					<span class="flex-1 text-white text-sm">{category.name}</span>
-					{#if selectedCategoryId === category.id}
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							class="h-4 w-4 text-blue-400"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							aria-hidden="true"
+			{#if isLoading}
+				<div class="px-4 py-3 text-gray-400 text-sm">
+					{t("common.loading", "Ładowanie...")}
+				</div>
+			{:else}
+				<div class="max-h-64 overflow-y-auto">
+					{#each categories as category}
+						<button
+							type="button"
+							onclick={() => selectCategory(category.id)}
+							aria-label={t(
+								"searchFilters.selectCategory",
+								`Zaznacz kategorię ${category.name}`
+							).replace("{name}", category.name)}
+							class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-700/50 transition-colors text-left cursor-pointer {selectedCategoryId ===
+							category.id
+								? 'bg-gray-700/30'
+								: ''}"
 						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M5 13l4 4L19 7"
-							/>
-						</svg>
-					{/if}
-				</button>
-			{/each}
+							<span class="text-lg">{category.icon}</span>
+							<span class="flex-1 text-white text-sm">{category.name}</span>
+							{#if selectedCategoryId === category.id}
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									class="h-4 w-4 text-blue-400"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+									aria-hidden="true"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M5 13l4 4L19 7"
+									/>
+								</svg>
+							{/if}
+						</button>
+					{/each}
+				</div>
+				<div class="border-t border-gray-700 p-2" onclick={(e) => e.stopPropagation()}>
+					<CategoryManager 
+						key={categoryManagerKey} 
+						onOpen={() => {
+							isOpen = false;
+						}}
+					/>
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>

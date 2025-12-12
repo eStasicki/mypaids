@@ -21,7 +21,9 @@
 		"use": "Użyj",
 		"confirm": "Potwierdź",
 		"yes": "Tak",
-		"no": "Nie"
+		"no": "Nie",
+		"update": "Zaktualizuj",
+		"loading": "Ładowanie..."
 	},
 	"months": {
 		"january": "Styczeń",
@@ -45,7 +47,28 @@
 		"trash": "Śmieci",
 		"heating": "Ogrzewanie",
 		"insurance": "Ubezpieczenie",
-		"other": "Inne"
+		"other": "Inne",
+		"manage": "Zarządzaj kategoriami",
+		"add": "Dodaj kategorię",
+		"edit": "Edytuj kategorię",
+		"name": "Nazwa kategorii",
+		"namePlaceholder": "np. Telefon",
+		"icon": "Ikona",
+		"selectIcon": "Wybierz ikonę",
+		"color": "Kolor",
+		"selectColor": "Wybierz kolor",
+		"yourCategories": "Twoje kategorie",
+		"noCategories": "Brak kategorii",
+		"noCategoriesMessage": "Dodaj pierwszą kategorię, aby rozpocząć",
+		"addNew": "Dodaj nową kategorię",
+		"deleteConfirm": "Czy na pewno chcesz usunąć kategorię \"{name}\"?",
+		"deleteConfirmDescription": "Ta operacja jest nieodwracalna. Wszystkie rachunki przypisane do tej kategorii pozostaną bez kategorii.",
+		"errors": {
+			"nameRequired": "Nazwa kategorii jest wymagana",
+			"saveError": "Wystąpił błąd podczas zapisywania kategorii",
+			"deleteError": "Wystąpił błąd podczas usuwania kategorii",
+			"loadError": "Wystąpił błąd podczas ładowania kategorii"
+		}
 	},
 	"bills": {
 		"title": "Rachunki",

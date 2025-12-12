@@ -15,7 +15,7 @@
 		filterMonthsByYears,
 		sortMonthsByDate,
 	} from "$lib/utils/monthUtils";
-	import { DEFAULT_CATEGORIES, getCategoryById } from "$lib/utils/categoryUtils";
+	import { DEFAULT_CATEGORIES, getCategoryById, type Category } from "$lib/utils/categoryUtils";
 	import { getCategoryTotals } from "$lib/utils/chartUtils";
 	import { t } from "$lib/utils/i18n";
 	import { tick } from "svelte";
@@ -37,6 +37,8 @@
 	let showDetailedStats = $state(false);
 	let detailedStatsRef: HTMLElement | null = $state(null);
 	let currentUser = $derived($user);
+	let categoryTotalsPromise = $state<Promise<Array<{ category: Category; total: number }>> | null>(null);
+	let categoryCache = $state<Map<string, Category>>(new Map());
 
 	if (browser) {
 		$effect(() => {
@@ -149,6 +151,26 @@
 		});
 		return Array.from(categoryIds);
 	}
+
+	async function loadCategory(categoryId: string): Promise<Category | null> {
+		if (categoryCache.has(categoryId)) {
+			return categoryCache.get(categoryId) || null;
+		}
+		const category = await getCategoryById(categoryId, t);
+		if (category) {
+			categoryCache.set(categoryId, category);
+		}
+		return category || null;
+	}
+
+	$effect(() => {
+		const filtered = getFilteredMonths();
+		if (filtered.length > 0) {
+			categoryTotalsPromise = getCategoryTotals(filtered, t);
+		} else {
+			categoryTotalsPromise = Promise.resolve([]);
+		}
+	});
 
 	function getTotalAll() {
 		return getTotalForAllMonths(getFilteredMonths());
@@ -343,29 +365,30 @@
 				</div>
 				<div class="flex flex-wrap gap-3">
 					{#each getAvailableCategoryIds() as categoryId}
-						{@const category = getCategoryById(categoryId, t)}
-						{#if category}
-							<label
-								class="flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-200 cursor-pointer {selectedCategories.has(
-									categoryId
-								)
-									? 'bg-blue-600/20 border-blue-500/50'
-									: 'bg-gray-700/30 border-gray-600/50 hover:bg-gray-700/50'}"
-								style={selectedCategories.has(categoryId)
-									? `border-left-color: ${category.color};`
-									: ""}
-							>
-								<input
-									type="checkbox"
-									checked={selectedCategories.has(categoryId)}
-									onchange={() => toggleCategory(categoryId)}
-									aria-label="Zaznacz kategorię {category.name}"
-									class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
-								/>
-								<span class="text-lg">{category.icon}</span>
-								<span class="font-medium text-gray-300">{category.name}</span>
-							</label>
-						{/if}
+						{#await loadCategory(categoryId) then category}
+							{#if category}
+								<label
+									class="flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-200 cursor-pointer {selectedCategories.has(
+										categoryId
+									)
+										? 'bg-blue-600/20 border-blue-500/50'
+										: 'bg-gray-700/30 border-gray-600/50 hover:bg-gray-700/50'}"
+									style={selectedCategories.has(categoryId)
+										? `border-left-color: ${category.color};`
+										: ""}
+								>
+									<input
+										type="checkbox"
+										checked={selectedCategories.has(categoryId)}
+										onchange={() => toggleCategory(categoryId)}
+										aria-label="Zaznacz kategorię {category.name}"
+										class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+									/>
+									<span class="text-lg">{category.icon}</span>
+									<span class="font-medium text-gray-300">{category.name}</span>
+								</label>
+							{/if}
+						{/await}
 					{/each}
 				</div>
 			</div>
@@ -470,22 +493,26 @@
 		{:else}
 			<div class="mb-6">
 				<h3 class="text-lg font-semibold text-white mb-4">Podsumowanie według kategorii</h3>
-				<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
-					{#each getCategoryTotals(getFilteredMonths(), t) as { category, total }}
-						<div
-							class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/50"
-							style="border-left: 4px solid {category.color};"
-						>
-							<div class="flex items-center gap-2 mb-2">
-								<span class="text-xl">{category.icon}</span>
-								<span class="font-medium text-white">{category.name}</span>
+				{#await categoryTotalsPromise then categoryTotals}
+					<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+						{#each categoryTotals as { category, total }}
+							<div
+								class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/50"
+								style="border-left: 4px solid {category.color};"
+							>
+								<div class="flex items-center gap-2 mb-2">
+									<span class="text-xl">{category.icon}</span>
+									<span class="font-medium text-white">{category.name}</span>
+								</div>
+								<div class="text-2xl font-bold text-white">
+									{total.toFixed(2)} zł
+								</div>
 							</div>
-							<div class="text-2xl font-bold text-white">
-								{total.toFixed(2)} zł
-							</div>
-						</div>
-					{/each}
-				</div>
+						{/each}
+					</div>
+				{:catch}
+					<div class="text-gray-400 text-sm">Błąd ładowania kategorii</div>
+				{/await}
 			</div>
 			{#if chartType === "line"}
 				<LineChart loadedMonths={getFilteredMonths()} />
@@ -521,10 +548,11 @@
 							>
 								<div class="flex items-center gap-3">
 									{#if item.bill.categoryId}
-										{@const category = getCategoryById(item.bill.categoryId, t)}
-										{#if category}
-											<span class="text-xl">{category.icon}</span>
-										{/if}
+										{#await loadCategory(item.bill.categoryId) then category}
+											{#if category}
+												<span class="text-xl">{category.icon}</span>
+											{/if}
+										{/await}
 									{/if}
 									<div>
 										<div class="font-medium text-white">{item.bill.name}</div>
@@ -558,32 +586,33 @@
 					<h3 class="text-xl font-semibold text-white mb-4">Statystyki według kategorii</h3>
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 						{#each categoryStats as stat}
-							{@const category = getCategoryById(stat.categoryId, t)}
-							{#if category}
-								<div
-									class="p-4 bg-gray-700/30 rounded-lg border border-gray-600/50"
-									style="border-left: 4px solid {category.color};"
-								>
-									<div class="flex items-center gap-2 mb-2">
-										<span class="text-2xl">{category.icon}</span>
-										<h4 class="font-semibold text-white">{category.name}</h4>
+							{#await loadCategory(stat.categoryId) then category}
+								{#if category}
+									<div
+										class="p-4 bg-gray-700/30 rounded-lg border border-gray-600/50"
+										style="border-left: 4px solid {category.color};"
+									>
+										<div class="flex items-center gap-2 mb-2">
+											<span class="text-2xl">{category.icon}</span>
+											<h4 class="font-semibold text-white">{category.name}</h4>
+										</div>
+										<div class="space-y-1 text-sm">
+											<div class="flex justify-between">
+												<span class="text-gray-400">Łączna suma:</span>
+												<span class="text-white font-medium">{stat.totalAmount.toFixed(2)} zł</span>
+											</div>
+											<div class="flex justify-between">
+												<span class="text-gray-400">Średnia:</span>
+												<span class="text-white font-medium">{stat.averageAmount.toFixed(2)} zł</span>
+											</div>
+											<div class="flex justify-between">
+												<span class="text-gray-400">Liczba rachunków:</span>
+												<span class="text-white font-medium">{stat.count}</span>
+											</div>
+										</div>
 									</div>
-									<div class="space-y-1 text-sm">
-										<div class="flex justify-between">
-											<span class="text-gray-400">Łączna suma:</span>
-											<span class="text-white font-medium">{stat.totalAmount.toFixed(2)} zł</span>
-										</div>
-										<div class="flex justify-between">
-											<span class="text-gray-400">Średnia:</span>
-											<span class="text-white font-medium">{stat.averageAmount.toFixed(2)} zł</span>
-										</div>
-										<div class="flex justify-between">
-											<span class="text-gray-400">Liczba rachunków:</span>
-											<span class="text-white font-medium">{stat.count}</span>
-										</div>
-									</div>
-								</div>
-							{/if}
+								{/if}
+							{/await}
 						{/each}
 					</div>
 				</div>

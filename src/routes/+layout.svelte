@@ -5,6 +5,7 @@
 	import { browser } from "$app/environment";
 	import AuthModal from "$lib/components/AuthModal.svelte";
 	import UserSettingsModal from "$lib/components/UserSettingsModal.svelte";
+	import CategoryManager from "$lib/components/CategoryManager.svelte";
 	import { user } from "$lib/stores";
 	import { getProfile } from "$lib/supabase/handlers";
 	import { onMount } from "svelte";
@@ -91,4 +92,5 @@
 	</main>
 	<AuthModal bind:isOpen={showAuthModal} />
 	<UserSettingsModal bind:isOpen={showUserSettingsModal} />
+	<CategoryManager />
 </div>

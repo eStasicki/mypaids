@@ -17,6 +17,18 @@
 	let newBillCategoryId = $state<string>("");
 	let newBillNameInput: HTMLInputElement | null = $state(null);
 	let showTemplateManager = $state(false);
+	let categoryCache = $state<Map<string, any>>(new Map());
+
+	async function loadCategory(categoryId: string) {
+		if (categoryCache.has(categoryId)) {
+			return categoryCache.get(categoryId);
+		}
+		const category = await getCategoryById(categoryId, t);
+		if (category) {
+			categoryCache.set(categoryId, category);
+		}
+		return category || null;
+	}
 
 	function addBill() {
 		if (!newBillName.trim()) return;
@@ -122,8 +134,9 @@
 								onSelect={(categoryId) => updateBill(bill.id, "categoryId", categoryId)}
 							/>
 						{:else}
-							{@const category = bill.categoryId ? getCategoryById(bill.categoryId, t) : null}
-							{#if category}
+							{#if bill.categoryId}
+								{#await loadCategory(bill.categoryId) then category}
+									{#if category}
 								<button
 									onclick={() => (editingId = bill.id)}
 									aria-label="Edytuj kategorię rachunku"
@@ -133,6 +146,8 @@
 									<span class="text-base">{category.icon}</span>
 									<span class="text-xs text-gray-300">{category.name}</span>
 								</button>
+									{/if}
+								{/await}
 							{:else}
 								<button
 									onclick={() => (editingId = bill.id)}

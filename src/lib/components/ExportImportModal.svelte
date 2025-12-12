@@ -50,14 +50,14 @@
 		importError = null;
 	}
 
-	function handleExportPDF() {
+	async function handleExportPDF() {
 		const monthsToExport = getMonthsToExport();
 		if (monthsToExport.length === 0) {
 			importError = $_("exportImport.errors.noMonthsSelected");
 			return;
 		}
 		const title = `${$_("pdf.title")} - ${new Date().toLocaleDateString("pl-PL")}`;
-		generatePDFReport(monthsToExport, title, $_);
+		await generatePDFReport(monthsToExport, title, $_);
 		importError = null;
 	}
 

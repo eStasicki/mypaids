@@ -2,6 +2,7 @@
 	import { templates } from "$lib/stores";
 	import { saveTemplatesToStorage, createTemplate, templateToBill } from "$lib/utils/templateUtils";
 	import { DEFAULT_CATEGORIES, getCategoryById } from "$lib/utils/categoryUtils";
+	import { t } from "$lib/utils/i18n";
 	import CategorySelector from "./CategorySelector.svelte";
 	import type { BillTemplate } from "$lib/types";
 
@@ -21,6 +22,18 @@
 	let templateAmount = $state<string>("");
 	let templateCategoryId = $state<string>("");
 	let templateAutoAdd = $state(false);
+	let categoryCache = $state<Map<string, any>>(new Map());
+
+	async function loadCategory(categoryId: string) {
+		if (categoryCache.has(categoryId)) {
+			return categoryCache.get(categoryId);
+		}
+		const category = await getCategoryById(categoryId, t);
+		if (category) {
+			categoryCache.set(categoryId, category);
+		}
+		return category || null;
+	}
 
 	function handleAddTemplate() {
 		if (!templateName.trim()) return;
@@ -297,10 +310,11 @@
 								<div class="flex-1">
 									<div class="flex items-center gap-3 mb-2">
 										{#if template.categoryId}
-											{@const category = getCategoryById(template.categoryId)}
-											{#if category}
-												<span class="text-xl">{category.icon}</span>
-											{/if}
+											{#await loadCategory(template.categoryId) then category}
+												{#if category}
+													<span class="text-xl">{category.icon}</span>
+												{/if}
+											{/await}
 										{/if}
 										<h4 class="text-lg font-semibold text-white">
 											{template.name}
@@ -320,10 +334,11 @@
 												: "Brak"}</span
 										>
 										{#if template.categoryId}
-											{@const category = getCategoryById(template.categoryId)}
-											{#if category}
-												<span>Kategoria: {category.name}</span>
-											{/if}
+											{#await loadCategory(template.categoryId) then category}
+												{#if category}
+													<span>Kategoria: {category.name}</span>
+												{/if}
+											{/await}
 										{/if}
 									</div>
 								</div>

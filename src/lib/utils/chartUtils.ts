@@ -24,7 +24,7 @@ export function getChartDataByCategory(months: Month[]): Record<string, number[]
 	return categoryData;
 }
 
-export function getCategoryTotals(months: Month[], t?: (key: string) => string): Array<{ category: Category; total: number }> {
+export async function getCategoryTotals(months: Month[], t?: (key: string) => string): Promise<Array<{ category: Category; total: number }>> {
 	const totals = new Map<string, number>();
 
 	months.forEach((month) => {
@@ -36,7 +36,7 @@ export function getCategoryTotals(months: Month[], t?: (key: string) => string):
 		});
 	});
 
-	const categories = t ? getCategories(t) : DEFAULT_CATEGORIES;
+	const categories = t ? await getCategories(t) : DEFAULT_CATEGORIES;
 
 	return categories.map((category) => ({
 		category,
