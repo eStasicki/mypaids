@@ -201,14 +201,12 @@ export async function getCategoryById(id: string, t?: (key: string) => string): 
 	const isDefaultCategory = DEFAULT_CATEGORIES_DATA.some((cat) => cat.id === id);
 
 	if (isDefaultCategory) {
-		if (t) {
-			const data = DEFAULT_CATEGORIES_DATA.find((cat) => cat.id === id);
-			if (data) {
-				return {
-					...data,
-					name: t(`categories.${id}`),
-				};
-			}
+		const data = DEFAULT_CATEGORIES_DATA.find((cat) => cat.id === id);
+		if (data) {
+			return {
+				...data,
+				name: t ? t(`categories.${id}`) : id,
+			};
 		}
 		return DEFAULT_CATEGORIES.find((cat) => cat.id === id);
 	}

@@ -15,7 +15,7 @@
 		filterMonthsByYears,
 		sortMonthsByDate,
 	} from "$lib/utils/monthUtils";
-	import { DEFAULT_CATEGORIES, getCategoryById, type Category } from "$lib/utils/categoryUtils";
+	import { DEFAULT_CATEGORIES, DEFAULT_CATEGORIES_DATA, getCategoryById, type Category } from "$lib/utils/categoryUtils";
 	import { getCategoryTotals } from "$lib/utils/chartUtils";
 	import { t } from "$lib/utils/i18n";
 	import { tick } from "svelte";
@@ -158,10 +158,29 @@
 
 	async function loadCategory(categoryId: string): Promise<Category | null> {
 		if (categoryCache.has(categoryId)) {
-			return categoryCache.get(categoryId) || null;
+			const cached = categoryCache.get(categoryId);
+			if (cached) {
+				const isDefaultCategory = DEFAULT_CATEGORIES_DATA.some((cat) => cat.id === categoryId);
+				if (isDefaultCategory && cached.name === categoryId) {
+					const translatedName = t(`categories.${categoryId}`);
+					if (translatedName !== categoryId) {
+						const updatedCategory = { ...cached, name: translatedName };
+						categoryCache.set(categoryId, updatedCategory);
+						return updatedCategory;
+					}
+				}
+				return cached;
+			}
 		}
 		const category = await getCategoryById(categoryId, t);
 		if (category) {
+			const isDefaultCategory = DEFAULT_CATEGORIES_DATA.some((cat) => cat.id === categoryId);
+			if (isDefaultCategory && category.name === categoryId) {
+				const translatedName = t(`categories.${categoryId}`);
+				if (translatedName !== categoryId) {
+					category.name = translatedName;
+				}
+			}
 			categoryCache.set(categoryId, category);
 		}
 		return category || null;

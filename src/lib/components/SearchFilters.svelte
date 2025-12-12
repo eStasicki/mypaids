@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { DEFAULT_CATEGORIES, getCategoryById } from "$lib/utils/categoryUtils";
+	import { DEFAULT_CATEGORIES, getCategories, type Category } from "$lib/utils/categoryUtils";
 	import type { SearchFilters } from "$lib/utils/searchUtils";
+	import { t } from "$lib/utils/i18n";
+	import { onMount } from "svelte";
 
 	let {
 		filters,
@@ -10,6 +12,7 @@
 		onFiltersChange: (filters: SearchFilters) => void;
 	} = $props();
 	let isExpanded = $state(false);
+	let categories = $state<Category[]>(DEFAULT_CATEGORIES);
 
 	function updateFilters(updates: Partial<SearchFilters>) {
 		onFiltersChange({ ...filters, ...updates });
@@ -25,8 +28,20 @@
 		updateFilters({ categoryIds: updated });
 	}
 
+	async function loadCategories() {
+		try {
+			categories = await getCategories(t);
+		} catch {
+			categories = DEFAULT_CATEGORIES;
+		}
+	}
+
+	onMount(() => {
+		loadCategories();
+	});
+
 	function selectAllCategories() {
-		const allIds = new Set(DEFAULT_CATEGORIES.map((c) => c.id));
+		const allIds = new Set(categories.map((c) => c.id));
 		updateFilters({ categoryIds: allIds });
 	}
 
@@ -151,7 +166,7 @@
 					</button>
 				</div>
 				<div class="flex flex-wrap gap-2">
-					{#each DEFAULT_CATEGORIES as category}
+					{#each categories as category}
 						<label
 							class="flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 cursor-pointer {filters.categoryIds.has(
 								category.id
