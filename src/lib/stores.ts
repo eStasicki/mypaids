@@ -2,10 +2,13 @@ import { writable } from "svelte/store";
 import type { Month } from "./types";
 import { loadTemplatesFromStorage } from "./utils/templateUtils";
 import type { BillTemplate } from "./types";
+import type { User, Session } from "@supabase/supabase-js";
 
 export const months = writable<Month[]>([]);
 export const newCardIds = writable<Set<string>>(new Set());
 
-// Initialize templates store with data from localStorage
 const initialTemplates = loadTemplatesFromStorage();
 export const templates = writable<BillTemplate[]>(initialTemplates);
+
+export const user = writable<User | null>(null);
+export const session = writable<Session | null>(null);
