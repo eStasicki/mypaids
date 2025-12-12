@@ -54,3 +54,49 @@ export async function getUser() {
 	user.set(data.user);
 	return data.user;
 }
+
+export async function getProfile(userId?: string) {
+	const supabase = createClient();
+	const targetUserId = userId || (await getUser())?.id;
+
+	if (!targetUserId) {
+		throw new Error("User ID is required");
+	}
+
+	const { data, error } = await supabase
+		.from("profiles")
+		.select("*")
+		.eq("id", targetUserId)
+		.single();
+
+	if (error) {
+		throw error;
+	}
+
+	return data;
+}
+
+export async function updateProfile(updates: {
+	full_name?: string;
+	avatar_url?: string;
+}) {
+	const supabase = createClient();
+	const currentUser = await getUser();
+
+	if (!currentUser?.id) {
+		throw new Error("User must be authenticated");
+	}
+
+	const { data, error } = await supabase
+		.from("profiles")
+		.update(updates)
+		.eq("id", currentUser.id)
+		.select()
+		.single();
+
+	if (error) {
+		throw error;
+	}
+
+	return data;
+}

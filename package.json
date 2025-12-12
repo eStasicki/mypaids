@@ -11,7 +11,13 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
-		"format:check": "prettier --check ."
+		"format:check": "prettier --check .",
+		"db:new": "dotenv -e .env -- supabase migration new",
+		"db:push": "dotenv -e .env -- supabase db push",
+		"db:pull": "dotenv -e .env -- supabase db pull",
+		"db:reset": "dotenv -e .env -- supabase db reset",
+		"db:types": "dotenv -e .env -- supabase gen types typescript --local > src/lib/supabase/types.ts",
+		"db:types:remote": "echo \"$SUPABASE_DB_PASSWORD\" | dotenv -e .env -- supabase gen types typescript --linked > src/lib/supabase/types.ts"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.0",
@@ -20,8 +26,10 @@
 		"@tailwindcss/postcss": "^4.1.18",
 		"autoprefixer": "^10.4.22",
 		"postcss": "^8.5.6",
+		"dotenv-cli": "^7.4.2",
 		"prettier": "^3.7.4",
 		"prettier-plugin-svelte": "^3.4.0",
+		"supabase": "^1.200.0",
 		"svelte": "^5.43.8",
 		"svelte-check": "^4.3.4",
 		"tailwindcss": "^4.1.18",
