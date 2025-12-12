@@ -8,8 +8,12 @@ export function exportToJSON(months: Month[]): string {
 	return JSON.stringify(data, null, 2);
 }
 
-export function exportToCSV(months: Month[]): string {
-	const headers = ['Data', 'Nazwa Rachunku', 'Kwota'];
+export function exportToCSV(months: Month[], t?: (key: string) => string): string {
+	const headers = [
+		t ? t('export.headers.date') : 'Data',
+		t ? t('export.headers.billName') : 'Nazwa Rachunku',
+		t ? t('export.headers.amount') : 'Kwota'
+	];
 	const rows: string[] = [headers.join(',')];
 
 	months.forEach((month) => {

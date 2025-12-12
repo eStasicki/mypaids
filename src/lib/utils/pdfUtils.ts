@@ -13,16 +13,18 @@ if (typeof pdfMake !== 'undefined' && pdfMake.vfs === undefined) {
  * Generuje PDF raport dla wybranych miesięcy z profesjonalnym, księgowym wyglądem
  * Używa pdfmake z pełnym wsparciem Unicode dla polskich znaków
  */
-export function generatePDFReport(months: Month[], title: string = 'Raport Rachunków'): void {
+export function generatePDFReport(months: Month[], title?: string, t?: (key: string) => string): void {
+	const defaultTitle = t ? t('pdf.title') : 'Raport Rachunków';
+	const reportTitle = title || defaultTitle;
 	const sortedMonths = [...months].sort((a, b) => a.date.getTime() - b.date.getTime());
 
 	const docDefinition: TDocumentDefinitions = {
 		pageSize: 'A4',
 		pageMargins: [40, 60, 40, 60],
 		info: {
-			title: title,
+			title: reportTitle,
 			author: 'MyPaids',
-			subject: 'Raport Rachunków'
+			subject: t ? t('pdf.subject') : 'Raport Rachunków'
 		},
 		header: {
 			margin: [40, 20, 40, 0],
@@ -31,7 +33,7 @@ export function generatePDFReport(months: Month[], title: string = 'Raport Rachu
 				body: [
 					[
 						{
-							text: title,
+							text: reportTitle,
 							style: 'header',
 							fillColor: '#1f2937',
 							color: '#ffffff',
@@ -43,7 +45,7 @@ export function generatePDFReport(months: Month[], title: string = 'Raport Rachu
 		},
 		content: [
 			{
-				text: `Wygenerowano: ${new Date().toLocaleDateString('pl-PL', {
+				text: `${t ? t('pdf.generated') : 'Wygenerowano:'} ${new Date().toLocaleDateString('pl-PL', {
 					year: 'numeric',
 					month: 'long',
 					day: 'numeric',
@@ -54,22 +56,23 @@ export function generatePDFReport(months: Month[], title: string = 'Raport Rachu
 				margin: [0, 0, 0, 20]
 			},
 			...sortedMonths.map((month, index) => {
-				const monthName = getMonthName(month.date);
+				const monthName = getMonthName(month.date, t);
 				const year = month.date.getFullYear();
 				const total = getTotalForMonth(month);
 				const paymentDate = month.date.toLocaleDateString('pl-PL');
 
 				const tableData = [
 					[
-						{ text: 'Nazwa rachunku', style: 'tableHeader', fillColor: '#4b5563', color: '#ffffff' },
-						{ text: 'Kwota', style: 'tableHeader', fillColor: '#4b5563', color: '#ffffff', alignment: 'right' },
-						{ text: 'Kategoria', style: 'tableHeader', fillColor: '#4b5563', color: '#ffffff' },
-						{ text: 'Uwagi', style: 'tableHeader', fillColor: '#4b5563', color: '#ffffff' }
+						{ text: t ? t('pdf.billName') : 'Nazwa rachunku', style: 'tableHeader', fillColor: '#4b5563', color: '#ffffff' },
+						{ text: t ? t('pdf.amount') : 'Kwota', style: 'tableHeader', fillColor: '#4b5563', color: '#ffffff', alignment: 'right' },
+						{ text: t ? t('pdf.category') : 'Kategoria', style: 'tableHeader', fillColor: '#4b5563', color: '#ffffff' },
+						{ text: t ? t('pdf.notes') : 'Uwagi', style: 'tableHeader', fillColor: '#4b5563', color: '#ffffff' }
 					],
 					...month.bills.map((bill, billIndex) => {
-						const category = bill.categoryId ? getCategoryById(bill.categoryId) : null;
+						const category = bill.categoryId ? getCategoryById(bill.categoryId, t) : null;
 						const categoryName = category?.name || '-';
-						const amount = bill.amount !== null ? `${bill.amount.toFixed(2)} zł` : '-';
+						const currency = t ? t('bills.currency') : 'zł';
+						const amount = bill.amount !== null ? `${bill.amount.toFixed(2)} ${currency}` : '-';
 						const comment = bill.comment || '';
 
 						return [
@@ -83,7 +86,7 @@ export function generatePDFReport(months: Month[], title: string = 'Raport Rachu
 
 				if (month.bills.length === 0) {
 					tableData.push([
-						{ text: 'Brak rachunków', colSpan: 4, alignment: 'center', italics: true, color: '#6b7280' }
+						{ text: t ? t('pdf.noBills') : 'Brak rachunków', colSpan: 4, alignment: 'center', italics: true, color: '#6b7280' }
 					]);
 				}
 
@@ -102,7 +105,7 @@ export function generatePDFReport(months: Month[], title: string = 'Raport Rachu
 													color: '#ffffff'
 												},
 												{
-													text: `Data wpłaty: ${paymentDate}`,
+													text: `${t ? t('pdf.paymentDate') : 'Data wpłaty:'} ${paymentDate}`,
 													style: 'monthSubheader',
 													color: '#ffffff'
 												}
@@ -130,8 +133,8 @@ export function generatePDFReport(months: Month[], title: string = 'Raport Rachu
 									[
 										{
 											columns: [
-												{ text: 'Suma miesiąca:', style: 'totalLabel' },
-												{ text: `${total.toFixed(2)} zł`, style: 'totalValue', alignment: 'right' }
+												{ text: t ? t('pdf.monthTotal') : 'Suma miesiąca:', style: 'totalLabel' },
+												{ text: `${total.toFixed(2)} ${t ? t('bills.currency') : 'zł'}`, style: 'totalValue', alignment: 'right' }
 											],
 											fillColor: '#f3f4f6',
 											margin: [10, 8, 10, 8]
@@ -145,7 +148,7 @@ export function generatePDFReport(months: Month[], title: string = 'Raport Rachu
 							? [
 									{
 										stack: [
-											{ text: 'Notatki:', style: 'notesLabel' },
+											{ text: t ? t('pdf.notesLabel') : 'Notatki:', style: 'notesLabel' },
 											{ text: month.notes, style: 'notesText' }
 										],
 										margin: [0, 0, 0, 20]
@@ -177,7 +180,7 @@ export function generatePDFReport(months: Month[], title: string = 'Raport Rachu
 				? [
 						{ text: '', pageBreak: 'before' },
 						{
-							text: 'Podsumowanie',
+							text: t ? t('pdf.summary') : 'Podsumowanie',
 							style: 'header',
 							fillColor: '#1f2937',
 							color: '#ffffff',
@@ -189,32 +192,33 @@ export function generatePDFReport(months: Month[], title: string = 'Raport Rachu
 								widths: [80, 70, 60, 60],
 								body: [
 									[
-										{ text: 'Miesiąc', style: 'tableHeader', fillColor: '#3b82f6', color: '#ffffff' },
-										{ text: 'Data wpłaty', style: 'tableHeader', fillColor: '#3b82f6', color: '#ffffff' },
-										{ text: 'Liczba rachunków', style: 'tableHeader', fillColor: '#3b82f6', color: '#ffffff', alignment: 'center' },
-										{ text: 'Suma', style: 'tableHeader', fillColor: '#3b82f6', color: '#ffffff', alignment: 'right' }
+										{ text: t ? t('pdf.month') : 'Miesiąc', style: 'tableHeader', fillColor: '#3b82f6', color: '#ffffff' },
+										{ text: t ? t('pdf.paymentDateHeader') : 'Data wpłaty', style: 'tableHeader', fillColor: '#3b82f6', color: '#ffffff' },
+										{ text: t ? t('pdf.billsCount') : 'Liczba rachunków', style: 'tableHeader', fillColor: '#3b82f6', color: '#ffffff', alignment: 'center' },
+										{ text: t ? t('pdf.total') : 'Suma', style: 'tableHeader', fillColor: '#3b82f6', color: '#ffffff', alignment: 'right' }
 									],
 									...sortedMonths.map((month, monthIndex) => {
 										const monthName = getMonthName(month.date);
 										const year = month.date.getFullYear();
 										const total = getTotalForMonth(month);
+										const currency = t ? t('bills.currency') : 'zł';
 										return [
 											{ text: `${monthName} ${year}`, fillColor: monthIndex % 2 === 0 ? '#ffffff' : '#f9fafb' },
 											{ text: month.date.toLocaleDateString('pl-PL'), fillColor: monthIndex % 2 === 0 ? '#ffffff' : '#f9fafb' },
 											{ text: month.bills.length.toString(), alignment: 'center', fillColor: monthIndex % 2 === 0 ? '#ffffff' : '#f9fafb' },
-											{ text: `${total.toFixed(2)} zł`, alignment: 'right', fillColor: monthIndex % 2 === 0 ? '#ffffff' : '#f9fafb' }
+											{ text: `${total.toFixed(2)} ${currency}`, alignment: 'right', fillColor: monthIndex % 2 === 0 ? '#ffffff' : '#f9fafb' }
 										];
 									}),
 									[
 										{
-											text: 'RAZEM',
+											text: t ? t('pdf.totalLabel') : 'RAZEM',
 											style: 'footerLabel',
 											fillColor: '#1f2937',
 											color: '#ffffff',
 											bold: true
 										},
 										{
-											text: `${sortedMonths.length} miesięcy`,
+											text: t ? t('pdf.monthsCount').replace('{count}', sortedMonths.length.toString()) : `${sortedMonths.length} miesięcy`,
 											style: 'footerLabel',
 											fillColor: '#1f2937',
 											color: '#ffffff'
@@ -227,7 +231,7 @@ export function generatePDFReport(months: Month[], title: string = 'Raport Rachu
 											color: '#ffffff'
 										},
 										{
-											text: `${sortedMonths.reduce((sum, m) => sum + getTotalForMonth(m), 0).toFixed(2)} zł`,
+											text: `${sortedMonths.reduce((sum, m) => sum + getTotalForMonth(m), 0).toFixed(2)} ${t ? t('bills.currency') : 'zł'}`,
 											alignment: 'right',
 											style: 'footerLabel',
 											fillColor: '#1f2937',
@@ -237,7 +241,7 @@ export function generatePDFReport(months: Month[], title: string = 'Raport Rachu
 									],
 									[
 										{
-											text: 'ŚREDNIA',
+											text: t ? t('pdf.averageLabel') : 'ŚREDNIA',
 											style: 'footerLabel',
 											fillColor: '#1f2937',
 											color: '#ffffff',
@@ -246,7 +250,7 @@ export function generatePDFReport(months: Month[], title: string = 'Raport Rachu
 										{ text: '', fillColor: '#1f2937' },
 										{ text: '', fillColor: '#1f2937' },
 										{
-											text: `${(sortedMonths.reduce((sum, m) => sum + getTotalForMonth(m), 0) / sortedMonths.length).toFixed(2)} zł`,
+											text: `${(sortedMonths.reduce((sum, m) => sum + getTotalForMonth(m), 0) / sortedMonths.length).toFixed(2)} ${t ? t('bills.currency') : 'zł'}`,
 											alignment: 'right',
 											style: 'footerLabel',
 											fillColor: '#1f2937',
@@ -261,8 +265,9 @@ export function generatePDFReport(months: Month[], title: string = 'Raport Rachu
 				: [])
 		],
 		footer: function (currentPage: number, pageCount: number) {
+			const pageText = t ? t('pdf.page').replace('{current}', currentPage.toString()).replace('{total}', pageCount.toString()) : `Strona ${currentPage} z ${pageCount}`;
 			return {
-				text: `Strona ${currentPage} z ${pageCount}`,
+				text: pageText,
 				alignment: 'center',
 				fontSize: 8,
 				color: '#6b7280',

@@ -1,6 +1,8 @@
 <script lang="ts">
   import { months } from "$lib/stores";
   import { onMount } from "svelte";
+  import { _ } from "svelte-i18n";
+  import { t } from "$lib/utils/i18n";
   import MonthCard from "$lib/components/MonthCard.svelte";
   import AddMonthForm from "$lib/components/AddMonthForm.svelte";
   import ExportImportModal from "$lib/components/ExportImportModal.svelte";
@@ -53,14 +55,14 @@
       <h1
         class="text-5xl font-bold bg-linear-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 leading-normal"
       >
-        Moje Rachunki
+        {t("app.title", "Moje Rachunki")}
       </h1>
-      <p class="text-gray-400 text-sm">Zarządzaj swoimi rachunkami domowymi</p>
+      <p class="text-gray-400 text-sm">{t("app.subtitle", "Zarządzaj swoimi rachunkami domowymi")}</p>
     </div>
     <div class="flex gap-3 flex-wrap">
       <a
         href="/summary"
-        aria-label="Przejdź do podsumowania"
+        aria-label={t("aria.goToSummary", "Przejdź do podsumowania")}
         class="px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 border border-gray-600/50 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer flex items-center gap-2 active:scale-95"
       >
         <svg
@@ -78,11 +80,11 @@
             d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
           />
         </svg>
-        <span>Podsumowanie</span>
+        <span>{t("monthsPage.summary", "Podsumowanie")}</span>
       </a>
       <button
         onclick={() => (showExportImportModal = true)}
-        aria-label="Eksportuj lub importuj dane"
+        aria-label={t("aria.exportImport", "Eksportuj lub importuj dane")}
         class="px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 border border-gray-600/50 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer flex items-center gap-2 active:scale-95"
       >
         <svg
@@ -100,11 +102,11 @@
             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
           />
         </svg>
-        <span>Eksport/Import</span>
+        <span>{t("monthsPage.exportImport", "Eksport/Import")}</span>
       </button>
       <button
         onclick={() => (showTemplateManager = true)}
-        aria-label="Zarządzaj szablonami rachunków"
+        aria-label={t("aria.manageTemplates", "Zarządzaj szablonami rachunków")}
         class="px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 border border-gray-600/50 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer flex items-center gap-2 active:scale-95"
       >
         <svg
@@ -122,13 +124,13 @@
             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
           />
         </svg>
-        <span>Szablony</span>
+        <span>{t("monthsPage.templates", "Szablony")}</span>
       </button>
       <button
         onclick={() => (showAddForm = !showAddForm)}
         aria-label={showAddForm
-          ? "Anuluj dodawanie miesiąca"
-          : "Dodaj nowy miesiąc"}
+          ? t("aria.cancelAddMonth", "Anuluj dodawanie miesiąca")
+          : t("aria.addNewMonth", "Dodaj nowy miesiąc")}
         aria-expanded={showAddForm}
         aria-controls="add-month-form"
         class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl font-medium transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105 active:scale-95 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
@@ -148,7 +150,7 @@
             d="M12 4v16m8-8H4"
           />
         </svg>
-        <span>{showAddForm ? "Anuluj" : "Dodaj Miesiąc"}</span>
+        <span>{showAddForm ? t("common.cancel", "Anuluj") : t("monthsPage.addMonth", "Dodaj Miesiąc")}</span>
       </button>
     </div>
   </header>
@@ -194,21 +196,21 @@
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            <span class="text-gray-300">Znaleziono:</span>
+            <span class="text-gray-300">{t("monthsPage.found", "Znaleziono:")}</span>
             <span class="font-semibold text-white"
-              >{stats.totalBills} rachunków</span
+              >{stats.totalBills} {t("monthsPage.billsCount", "rachunków")}</span
             >
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-gray-300">Łączna suma:</span>
+            <span class="text-gray-300">{t("monthsPage.totalSum", "Łączna suma:")}</span>
             <span class="font-semibold text-white"
-              >{stats.totalAmount.toFixed(2)} zł</span
+              >{stats.totalAmount.toFixed(2)} {t("bills.currency", "zł")}</span
             >
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-gray-300">Średnia:</span>
+            <span class="text-gray-300">{t("monthsPage.average", "Średnia:")}</span>
             <span class="font-semibold text-white"
-              >{stats.averageAmount.toFixed(2)} zł</span
+              >{stats.averageAmount.toFixed(2)} {t("bills.currency", "zł")}</span
             >
           </div>
         </div>
@@ -257,24 +259,24 @@
           </div>
           {#if searchFilters.query.trim() !== "" || searchFilters.categoryIds.size > 0 || searchFilters.minAmount !== null || searchFilters.maxAmount !== null}
             <p class="text-xl font-semibold text-gray-300 mb-2">
-              Brak wyników wyszukiwania
+              {t("monthsPage.noSearchResults", "Brak wyników wyszukiwania")}
             </p>
             <p class="text-sm text-gray-500">
-              Spróbuj zmienić kryteria wyszukiwania
+              {t("monthsPage.noSearchResultsMessage", "Spróbuj zmienić kryteria wyszukiwania")}
             </p>
           {:else if $months.length === 0}
             <p class="text-xl font-semibold text-gray-300 mb-2">
-              Brak dodanych miesięcy
+              {t("monthsPage.noMonths", "Brak dodanych miesięcy")}
             </p>
             <p class="text-sm text-gray-500">
-              Kliknij "Dodaj Miesiąc", aby rozpocząć
+              {t("monthsPage.noMonthsMessage", "Kliknij \"Dodaj Miesiąc\", aby rozpocząć")}
             </p>
           {:else}
             <p class="text-xl font-semibold text-gray-300 mb-2">
-              Brak dodanych miesięcy
+              {t("monthsPage.noMonths", "Brak dodanych miesięcy")}
             </p>
             <p class="text-sm text-gray-500">
-              Kliknij "Dodaj Miesiąc", aby rozpocząć
+              {t("monthsPage.noMonthsMessage", "Kliknij \"Dodaj Miesiąc\", aby rozpocząć")}
             </p>
           {/if}
         </div>

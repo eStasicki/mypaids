@@ -1,5 +1,6 @@
 <script lang="ts">
   import { months } from "$lib/stores";
+  import { _ } from "svelte-i18n";
   import {
     exportToJSON,
     exportToCSV,
@@ -28,7 +29,7 @@
   function handleExportJSON() {
     const monthsToExport = getMonthsToExport();
     if (monthsToExport.length === 0) {
-      importError = "Wybierz przynajmniej jeden miesiąc do eksportu";
+      importError = $_("exportImport.errors.noMonthsSelected");
       return;
     }
     const data = exportToJSON(monthsToExport);
@@ -40,10 +41,10 @@
   function handleExportCSV() {
     const monthsToExport = getMonthsToExport();
     if (monthsToExport.length === 0) {
-      importError = "Wybierz przynajmniej jeden miesiąc do eksportu";
+      importError = $_("exportImport.errors.noMonthsSelected");
       return;
     }
-    const data = exportToCSV(monthsToExport);
+    const data = exportToCSV(monthsToExport, $_);
     const filename = `mypaids-export-${new Date().toISOString().split("T")[0]}.csv`;
     downloadFile(data, filename, "text/csv");
     importError = null;
@@ -52,11 +53,11 @@
   function handleExportPDF() {
     const monthsToExport = getMonthsToExport();
     if (monthsToExport.length === 0) {
-      importError = "Wybierz przynajmniej jeden miesiąc do eksportu";
+      importError = $_("exportImport.errors.noMonthsSelected");
       return;
     }
-    const title = `Raport Rachunków - ${new Date().toLocaleDateString("pl-PL")}`;
-    generatePDFReport(monthsToExport, title);
+    const title = `${$_("pdf.title")} - ${new Date().toLocaleDateString("pl-PL")}`;
+    generatePDFReport(monthsToExport, title, $_);
     importError = null;
   }
 
@@ -100,7 +101,7 @@
 
   async function handleImport() {
     if (!importFile) {
-      importError = "Wybierz plik do importu";
+      importError = $_("exportImport.errors.noFileSelected");
       return;
     }
 
@@ -113,12 +114,12 @@
       } else if (importFile.name.endsWith(".csv")) {
         importedMonths = parseImportedCSV(content);
       } else {
-        importError = "Nieobsługiwany format pliku. Użyj JSON lub CSV.";
+        importError = $_("exportImport.errors.unsupportedFormat");
         return;
       }
 
       if (importedMonths.length === 0) {
-        importError = "Plik nie zawiera żadnych danych";
+        importError = $_("exportImport.errors.emptyFile");
         return;
       }
 
@@ -127,7 +128,9 @@
       onClose();
     } catch (error) {
       importError =
-        error instanceof Error ? error.message : "Błąd podczas importu pliku";
+        error instanceof Error
+          ? error.message
+          : $_("exportImport.errors.importError");
     }
   }
 

@@ -1,5 +1,22 @@
 import type { Month, Bill } from '../types';
 
+export function getMonthNames(t: (key: string) => string): string[] {
+	return [
+		t('months.january'),
+		t('months.february'),
+		t('months.march'),
+		t('months.april'),
+		t('months.may'),
+		t('months.june'),
+		t('months.july'),
+		t('months.august'),
+		t('months.september'),
+		t('months.october'),
+		t('months.november'),
+		t('months.december')
+	];
+}
+
 export const MONTH_NAMES = [
 	'Styczeń',
 	'Luty',
@@ -15,7 +32,11 @@ export const MONTH_NAMES = [
 	'Grudzień'
 ] as const;
 
-export function getMonthName(date: Date): string {
+export function getMonthName(date: Date, t?: (key: string) => string): string {
+	if (t) {
+		const monthNames = getMonthNames(t);
+		return monthNames[date.getMonth()];
+	}
 	return MONTH_NAMES[date.getMonth()];
 }
 

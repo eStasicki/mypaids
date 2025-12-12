@@ -5,73 +5,94 @@ export interface Category {
 	icon: string;
 }
 
-export const DEFAULT_CATEGORIES: Category[] = [
+export interface CategoryData {
+	id: string;
+	color: string;
+	icon: string;
+}
+
+export const DEFAULT_CATEGORIES_DATA: CategoryData[] = [
 	{
 		id: 'electricity',
-		name: 'Prąd',
 		color: '#fbbf24',
 		icon: '⚡'
 	},
 	{
 		id: 'water',
-		name: 'Woda',
 		color: '#3b82f6',
 		icon: '💧'
 	},
 	{
 		id: 'gas',
-		name: 'Gaz',
 		color: '#ef4444',
 		icon: '🔥'
 	},
 	{
 		id: 'internet',
-		name: 'Internet',
 		color: '#8b5cf6',
 		icon: '🌐'
 	},
 	{
 		id: 'trash',
-		name: 'Śmieci',
 		color: '#10b981',
 		icon: '🗑️'
 	},
 	{
 		id: 'heating',
-		name: 'Ogrzewanie',
 		color: '#f97316',
 		icon: '🔥'
 	},
 	{
 		id: 'insurance',
-		name: 'Ubezpieczenie',
 		color: '#06b6d4',
 		icon: '🛡️'
 	},
 	{
 		id: 'other',
-		name: 'Inne',
 		color: '#6b7280',
 		icon: '📋'
 	}
 ];
 
-export function getCategoryById(id: string): Category | undefined {
+export function getCategories(t: (key: string) => string): Category[] {
+	return DEFAULT_CATEGORIES_DATA.map(cat => ({
+		...cat,
+		name: t(`categories.${cat.id}`)
+	}));
+}
+
+export const DEFAULT_CATEGORIES: Category[] = DEFAULT_CATEGORIES_DATA.map(cat => ({
+	...cat,
+	name: cat.id
+}));
+
+export function getCategoryById(id: string, t?: (key: string) => string): Category | undefined {
+	if (t) {
+		const data = DEFAULT_CATEGORIES_DATA.find(cat => cat.id === id);
+		if (data) {
+			return {
+				...data,
+				name: t(`categories.${id}`)
+			};
+		}
+	}
 	return DEFAULT_CATEGORIES.find((cat) => cat.id === id);
 }
 
 export function getCategoryColor(id: string): string {
-	const category = getCategoryById(id);
-	return category?.color || DEFAULT_CATEGORIES[DEFAULT_CATEGORIES.length - 1].color;
+	const category = DEFAULT_CATEGORIES_DATA.find(cat => cat.id === id);
+	return category?.color || DEFAULT_CATEGORIES_DATA[DEFAULT_CATEGORIES_DATA.length - 1].color;
 }
 
-export function getCategoryName(id: string): string {
+export function getCategoryName(id: string, t?: (key: string) => string): string {
+	if (t) {
+		return t(`categories.${id}`) || id;
+	}
 	const category = getCategoryById(id);
 	return category?.name || DEFAULT_CATEGORIES[DEFAULT_CATEGORIES.length - 1].name;
 }
 
 export function getCategoryIcon(id: string): string {
-	const category = getCategoryById(id);
-	return category?.icon || DEFAULT_CATEGORIES[DEFAULT_CATEGORIES.length - 1].icon;
+	const category = DEFAULT_CATEGORIES_DATA.find(cat => cat.id === id);
+	return category?.icon || DEFAULT_CATEGORIES_DATA[DEFAULT_CATEGORIES_DATA.length - 1].icon;
 }
-
