@@ -4,12 +4,16 @@
 	import { getMaxDaysInMonth, sortMonthsByDate, MONTH_NAMES } from "$lib/utils/monthUtils";
 	import { DATE_RANGES } from "$lib/utils/constants";
 	import { templateToBill } from "$lib/utils/templateUtils";
+	import { onMount } from "svelte";
+	import { tick } from "svelte";
 
-	let { onClose }: { onClose?: () => void } = $props();
+	let { onClose, highlight = false }: { onClose?: () => void; highlight?: boolean } = $props();
 
 	let year = $state(new Date().getFullYear());
 	let month = $state(new Date().getMonth() + 1);
 	let day = $state(new Date().getDate());
+	let showHighlight = $state(false);
+	let formElement: HTMLDivElement | null = $state(null);
 
 	function getMaxDays() {
 		return getMaxDaysInMonth(year, month);
@@ -19,6 +23,28 @@
 		const maxDays = getMaxDays();
 		if (day > maxDays) {
 			day = maxDays;
+		}
+	});
+
+	$effect(() => {
+		if (highlight && formElement) {
+			showHighlight = true;
+			const timer = setTimeout(() => {
+				showHighlight = false;
+			}, 1200);
+			return () => clearTimeout(timer);
+		} else {
+			showHighlight = false;
+		}
+	});
+
+	onMount(async () => {
+		await tick();
+		if (highlight) {
+			showHighlight = true;
+			const timer = setTimeout(() => {
+				showHighlight = false;
+			}, 1200);
 		}
 	});
 
@@ -52,7 +78,10 @@
 </script>
 
 <div
-	class="bg-linear-to-br from-gray-800/95 to-gray-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-700/50"
+	bind:this={formElement}
+	class="bg-linear-to-br from-gray-800/95 to-gray-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border-2 {showHighlight
+		? 'animate-highlight-border'
+		: 'border-gray-700/50'}"
 >
 	<div class="flex items-center gap-3 mb-6">
 		<div
@@ -117,7 +146,7 @@
 			<button
 				type="submit"
 				aria-label="Dodaj nowy miesiąc"
-				class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl font-medium transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+				class="flex-1 px-6 py-3 bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl font-medium transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
 			>
 				Dodaj
 			</button>

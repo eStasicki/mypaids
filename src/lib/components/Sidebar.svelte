@@ -74,7 +74,12 @@
 	}
 
 	function toggleAddMonthForm() {
-		addMonthFormOpen.update((value) => !value);
+		if (currentPath !== "/my-paids") {
+			addMonthFormOpen.set(true);
+			goto("/my-paids");
+		} else {
+			addMonthFormOpen.update((value) => !value);
+		}
 	}
 
 	function isActive(path: string): boolean {
@@ -174,7 +179,7 @@
 					</div>
 					<button
 						onclick={toggleAddMonthForm}
-						class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700/50 hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-green-600/20 hover:bg-green-600/30 text-green-400 hover:text-green-300 border border-green-500/30 hover:border-green-500/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500"
 					>
 						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path

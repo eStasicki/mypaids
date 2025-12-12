@@ -122,6 +122,36 @@ button {
 	animation: float 3s ease-in-out;
 }
 
+@keyframes highlight-border {
+	0% {
+		border-color: rgb(34, 197, 94) !important;
+		border-width: 3px !important;
+		box-shadow:
+			0 0 0 0 rgba(34, 197, 94, 0.6),
+			0 0 25px rgba(34, 197, 94, 0.4) !important;
+	}
+	30% {
+		border-color: rgb(34, 197, 94) !important;
+		border-width: 3px !important;
+		box-shadow:
+			0 0 0 8px rgba(34, 197, 94, 0.4),
+			0 0 35px rgba(34, 197, 94, 0.5) !important;
+	}
+	100% {
+		border-color: rgba(107, 114, 128, 0.5) !important;
+		border-width: 2px !important;
+		box-shadow:
+			0 0 0 0 rgba(34, 197, 94, 0),
+			0 0 0 0 rgba(34, 197, 94, 0) !important;
+	}
+}
+
+.animate-highlight-border {
+	animation: highlight-border 1.2s ease-out forwards;
+	border-color: rgb(34, 197, 94) !important;
+	border-width: 3px !important;
+}
+
 .scroll-animate {
 	opacity: 0;
 	transform: translateY(30px);

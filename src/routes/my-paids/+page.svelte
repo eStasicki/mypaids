@@ -21,6 +21,7 @@
 	let showAddForm = $derived($addMonthFormOpen);
 	let showExportImportModal = $derived($exportImportModalOpen);
 	let showTemplateManager = $derived($templateManagerOpen);
+	let highlightForm = $state(false);
 	let searchFilters = $state<SearchFilters>({
 		query: "",
 		categoryIds: new Set(),
@@ -34,6 +35,22 @@
 		$effect(() => {
 			if (!currentUser) {
 				goto("/");
+			}
+		});
+
+		$effect(() => {
+			if (showAddForm) {
+				// Set highlight immediately when form opens
+				highlightForm = true;
+				// Remove highlight after animation completes
+				const timer = setTimeout(() => {
+					highlightForm = false;
+				}, 1200);
+				return () => {
+					clearTimeout(timer);
+				};
+			} else {
+				highlightForm = false;
 			}
 		});
 	}
@@ -118,7 +135,7 @@
 			role="region"
 			aria-labelledby="add-month-form-title"
 		>
-			<AddMonthForm onClose={() => addMonthFormOpen.set(false)} />
+			<AddMonthForm onClose={() => addMonthFormOpen.set(false)} {highlightForm} />
 		</div>
 	{/if}
 
