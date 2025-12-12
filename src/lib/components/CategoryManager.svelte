@@ -14,6 +14,7 @@
 	let selectedIcon = $state("📋");
 	let selectedColor = $state("#6b7280");
 	let isLoading = $state(false);
+	let isLoadingCategories = $state(false);
 	let error = $state<string | null>(null);
 	let showDeleteConfirm = $state<Category | null>(null);
 
@@ -24,10 +25,15 @@
 	];
 
 	async function loadCategories() {
+		if (isLoadingCategories) return;
+		isLoadingCategories = true;
 		try {
 			userCategories = await loadUserCategories();
 		} catch (err) {
 			console.error("Error loading categories:", err);
+			userCategories = [];
+		} finally {
+			isLoadingCategories = false;
 		}
 	}
 
@@ -132,6 +138,7 @@
 	$effect(() => {
 		if ($categoryManagerOpen) {
 			document.body.style.overflow = "hidden";
+			loadCategories();
 			return () => {
 				document.body.style.overflow = "";
 			};
