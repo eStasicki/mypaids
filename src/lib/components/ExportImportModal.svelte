@@ -149,6 +149,7 @@
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="export-import-title"
+		tabindex="-1"
 		onclick={handleBackdropClick}
 		onkeydown={handleKeydown}
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in"
@@ -216,10 +217,10 @@
 					{#if $months.length > 0}
 						<div class="mb-4">
 							<div class="flex items-center justify-between mb-3">
-								<label class="text-sm font-medium text-gray-300">
+								<div class="text-sm font-medium text-gray-300">
 									Wybierz miesiące do eksportu ({selectedMonthsForExport.size} z
 									{$months.length})
-								</label>
+								</div>
 								<div class="flex gap-2">
 									<button
 										onclick={selectAllMonths}
@@ -481,7 +482,7 @@
 								onclick={handleImport}
 								disabled={!importFile}
 								aria-label="Importuj dane"
-								class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+								class="flex-1 px-6 py-3 bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
 							>
 								Importuj
 							</button>

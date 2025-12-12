@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { signOut, getProfile, updateProfile, updatePassword, updateUserMetadata, uploadAvatar, deleteAvatar } from "$lib/supabase/handlers";
+	import { getProfile, updateProfile, updatePassword, updateUserMetadata, uploadAvatar, deleteAvatar } from "$lib/supabase/handlers";
 	import { user } from "$lib/stores";
 	import { browser } from "$app/environment";
 	import { onMount } from "svelte";
@@ -21,6 +21,7 @@
 	let selectedFile: File | null = $state(null);
 	let avatarPreview = $state<string | null>(null);
 	let isUploading = $state(false);
+	let activeTab = $state<"profile" | "password">("profile");
 
 	let modalRef: HTMLDivElement | null = $state(null);
 	let previousActiveElement: HTMLElement | null = $state(null);
@@ -227,18 +228,6 @@
 			isSaving = false;
 		}
 	}
-
-	async function handleSignOut() {
-		isLoading = true;
-		try {
-			await signOut();
-			closeModal();
-		} catch (err) {
-			error = err instanceof Error ? err.message : "Wystąpił błąd podczas wylogowywania";
-		} finally {
-			isLoading = false;
-		}
-	}
 </script>
 
 {#if isOpen}
@@ -252,7 +241,7 @@
 	>
 		<div
 			bind:this={modalRef}
-			class="bg-gradient-to-br from-gray-800 via-gray-800 to-gray-900 rounded-2xl p-8 max-w-2xl w-full mx-4 shadow-2xl border border-gray-700/50 animate-in zoom-in-95 duration-300 focus:outline-none cursor-default max-h-[90vh] overflow-y-auto"
+			class="bg-linear-to-br from-gray-800 via-gray-800 to-gray-900 rounded-2xl p-8 max-w-2xl w-full mx-4 shadow-2xl border border-gray-700/50 animate-in zoom-in-95 duration-300 focus:outline-none cursor-default max-h-[90vh] overflow-y-auto"
 			onclick={(e) => e.stopPropagation()}
 			tabindex="-1"
 		>
@@ -286,9 +275,30 @@
 				</div>
 			{/if}
 
+			<div class="flex gap-2 mb-6 border-b border-gray-700/50">
+				<button
+					onclick={() => (activeTab = "profile")}
+					class="px-4 py-2 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer {activeTab ===
+					'profile'
+						? 'text-blue-400 border-b-2 border-blue-400'
+						: 'text-gray-400 hover:text-gray-300'}"
+				>
+					Informacje o profilu
+				</button>
+				<button
+					onclick={() => (activeTab = "password")}
+					class="px-4 py-2 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer {activeTab ===
+					'password'
+						? 'text-blue-400 border-b-2 border-blue-400'
+						: 'text-gray-400 hover:text-gray-300'}"
+				>
+					Zmiana hasła
+				</button>
+			</div>
+
 			<div class="space-y-6">
+				{#if activeTab === "profile"}
 				<div>
-					<h3 class="text-xl font-semibold text-white mb-4">Informacje o profilu</h3>
 					<div class="space-y-4">
 						<div>
 							<label for="user-email" class="block text-sm font-medium text-gray-300 mb-2">
@@ -419,7 +429,7 @@
 						<button
 							onclick={handleSaveProfile}
 							disabled={isSaving}
-							class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-700 disabled:to-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+							class="w-full px-6 py-3 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-700 disabled:to-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800"
 						>
 							{#if isSaving}
 								<span class="flex items-center justify-center gap-2">
@@ -439,9 +449,10 @@
 						</button>
 					</div>
 				</div>
+				{/if}
 
-				<div class="border-t border-gray-700/50 pt-6">
-					<h3 class="text-xl font-semibold text-white mb-4">Zmiana hasła</h3>
+				{#if activeTab === "password"}
+				<div>
 					<div class="space-y-4">
 						<div>
 							<label for="user-new-password" class="block text-sm font-medium text-gray-300 mb-2">
@@ -474,7 +485,7 @@
 						<button
 							onclick={handleChangePassword}
 							disabled={isSaving || !newPassword || !confirmPassword}
-							class="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 disabled:from-gray-700 disabled:to-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+							class="w-full px-6 py-3 bg-linear-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 disabled:from-gray-700 disabled:to-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800"
 						>
 							{#if isSaving}
 								<span class="flex items-center justify-center gap-2">
@@ -494,40 +505,7 @@
 						</button>
 					</div>
 				</div>
-
-				<div class="border-t border-gray-700/50 pt-6">
-					<button
-						onclick={handleSignOut}
-						disabled={isLoading}
-						class="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:from-red-800 disabled:to-red-900 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800"
-					>
-						{#if isLoading}
-							<span class="flex items-center justify-center gap-2">
-								<svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-									<path
-										class="opacity-75"
-										fill="currentColor"
-										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-									></path>
-								</svg>
-								Wylogowywanie...
-							</span>
-						{:else}
-							<span class="flex items-center justify-center gap-2">
-								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-									/>
-								</svg>
-								Wyloguj się
-							</span>
-						{/if}
-					</button>
-				</div>
+				{/if}
 			</div>
 		</div>
 	</div>

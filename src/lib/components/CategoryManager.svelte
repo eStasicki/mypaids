@@ -139,24 +139,6 @@
 	});
 </script>
 
-{#if !$categoryManagerOpen}
-	<button
-		type="button"
-		class="category-manager-trigger flex items-center gap-2 px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm hover:bg-gray-700 hover:border-gray-600 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer w-full"
-		onclick={(e) => {
-			e.stopPropagation();
-			e.preventDefault();
-			openModal(e);
-		}}
-		aria-label={t("categories.manage", "Zarządzaj kategoriami")}
-	>
-		<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-		</svg>
-		<span>{t("categories.manage", "Zarządzaj kategoriami")}</span>
-	</button>
-{/if}
-
 <svelte:window onkeydown={handleEscape} />
 
 {#if $categoryManagerOpen}

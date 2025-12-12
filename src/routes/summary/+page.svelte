@@ -48,31 +48,32 @@
 		});
 	}
 
-	onMount(async () => {
+	onMount(() => {
 		if (browser) {
-			try {
-				const loaded = await loadMonthsFromSupabase();
-				loadedMonths = sortMonthsByDate(loaded, true);
+			loadMonthsFromSupabase()
+				.then((loaded) => {
+					loadedMonths = sortMonthsByDate(loaded, true);
 
-				if (selectedYears.size === 0 && loadedMonths.length > 0) {
-					const availableYears = new Set(loadedMonths.map((m) => m.date.getFullYear()));
-					selectedYears = availableYears;
-				}
+					if (selectedYears.size === 0 && loadedMonths.length > 0) {
+						const availableYears = new Set(loadedMonths.map((m) => m.date.getFullYear()));
+						selectedYears = availableYears;
+					}
 
-				if (selectedCategories.size === 0) {
-					const allCategoryIds = new Set<string>();
-					loadedMonths.forEach((month) => {
-						month.bills.forEach((bill) => {
-							if (bill.categoryId) {
-								allCategoryIds.add(bill.categoryId);
-							}
+					if (selectedCategories.size === 0) {
+						const allCategoryIds = new Set<string>();
+						loadedMonths.forEach((month) => {
+							month.bills.forEach((bill) => {
+								if (bill.categoryId) {
+									allCategoryIds.add(bill.categoryId);
+								}
+							});
 						});
-					});
-					selectedCategories = allCategoryIds;
-				}
-			} catch (error) {
-				console.error("Failed to load months from Supabase:", error);
-			}
+						selectedCategories = allCategoryIds;
+					}
+				})
+				.catch((error) => {
+					console.error("Failed to load months from Supabase:", error);
+				});
 		}
 
 		const unsubscribe = months.subscribe((value) => {
@@ -96,7 +97,10 @@
 				selectedCategories = allCategoryIds;
 			}
 		});
-		return unsubscribe;
+
+		return () => {
+			unsubscribe();
+		};
 	});
 
 	function getFilteredMonths() {
@@ -204,12 +208,14 @@
 			tick().then(() => {
 				if (detailedStatsRef) {
 					setTimeout(() => {
-						const elementTop = detailedStatsRef.getBoundingClientRect().top + window.pageYOffset;
-						const offset = 100;
-						window.scrollTo({
-							top: elementTop - offset,
-							behavior: "smooth"
-						});
+						if (detailedStatsRef) {
+							const elementTop = detailedStatsRef.getBoundingClientRect().top + window.pageYOffset;
+							const offset = 100;
+							window.scrollTo({
+								top: elementTop - offset,
+								behavior: "smooth"
+							});
+						}
 					}, 200);
 				}
 			});
@@ -220,37 +226,13 @@
 <div class="container mx-auto px-4 py-8 max-w-7xl">
 	<!-- svelte-ignore a11y_no_redundant_roles -->
 	<header role="banner" class="mb-10">
-		<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-			<div>
-				<h1
-					class="text-5xl font-bold bg-linear-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 leading-normal"
-				>
-					Podsumowanie
-				</h1>
-				<p class="text-gray-400 text-sm">Analiza Twoich rachunków</p>
-			</div>
-			<a
-				href="/"
-				aria-label="Wróć do głównej strony"
-				class="px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 border border-gray-600/50 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer flex items-center gap-2"
+		<div class="mb-6">
+			<h1
+				class="text-5xl font-bold bg-linear-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 leading-normal"
 			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="h-5 w-5"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					aria-hidden="true"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M10 19l-7-7m0 0l7-7m-7 7h18"
-					/>
-				</svg>
-				Powrót
-			</a>
+				Podsumowanie
+			</h1>
+			<p class="text-gray-400 text-sm">Analiza Twoich rachunków</p>
 		</div>
 
 		<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -400,7 +382,7 @@
 				aria-label="Wykres liniowy"
 				class="px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer {chartType ===
 				'line'
-					? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white'
+					? 'bg-linear-to-r from-blue-600 to-blue-500 text-white'
 					: 'bg-gray-700/50 text-gray-300 hover:bg-gray-700 border border-gray-600/50'}"
 			>
 				Liniowy
@@ -410,7 +392,7 @@
 				aria-label="Wykres słupkowy"
 				class="px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer {chartType ===
 				'bar'
-					? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white'
+					? 'bg-linear-to-r from-blue-600 to-blue-500 text-white'
 					: 'bg-gray-700/50 text-gray-300 hover:bg-gray-700 border border-gray-600/50'}"
 			>
 				Słupkowy
@@ -420,7 +402,7 @@
 				aria-label="Wykres obszarowy"
 				class="px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer {chartType ===
 				'area'
-					? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white'
+					? 'bg-linear-to-r from-blue-600 to-blue-500 text-white'
 					: 'bg-gray-700/50 text-gray-300 hover:bg-gray-700 border border-gray-600/50'}"
 			>
 				Obszarowy
@@ -431,7 +413,7 @@
 					? "Ukryj szczegółowe statystyki"
 					: "Pokaż szczegółowe statystyki"}
 				class="px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer {showDetailedStats
-					? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white'
+					? 'bg-linear-to-r from-purple-600 to-purple-500 text-white'
 					: 'bg-gray-700/50 text-gray-300 hover:bg-gray-700 border border-gray-600/50'}"
 			>
 				{showDetailedStats ? "Ukryj" : "Pokaż"} Statystyki

@@ -32,6 +32,7 @@
 		aria-modal="true"
 		aria-labelledby="modal-title"
 		aria-describedby="modal-description"
+		tabindex="-1"
 		onclick={handleBackdropClick}
 		onkeydown={handleKeydown}
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in"
@@ -41,7 +42,7 @@
 		>
 			<div class="flex items-start gap-4 mb-4">
 				<div
-					class="flex-shrink-0 w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center border border-red-500/30"
+					class="shrink-0 w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center border border-red-500/30"
 				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
@@ -81,7 +82,7 @@
 					type="button"
 					onclick={onConfirm}
 					aria-label="Potwierdź usuwanie"
-					class="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white rounded-xl font-medium transition-all duration-200 shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer"
+					class="flex-1 px-4 py-2.5 bg-linear-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white rounded-xl font-medium transition-all duration-200 shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer"
 				>
 					Usuń
 				</button>

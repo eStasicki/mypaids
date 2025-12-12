@@ -69,7 +69,7 @@
 		</div>
 		<button
 			onclick={openAuthModal}
-			class="px-4 py-2 sm:px-6 sm:py-2.5 text-sm sm:text-base bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg sm:rounded-xl transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 cursor-pointer"
+			class="px-4 py-2 sm:px-6 sm:py-2.5 text-sm sm:text-base bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg sm:rounded-xl transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 cursor-pointer"
 		>
 			Zaloguj się
 		</button>
@@ -104,7 +104,7 @@
 
 		<!-- Hero Image/Demo -->
 		<div class="relative max-w-5xl mx-auto mb-12 sm:mb-16 md:mb-20 px-4" data-aos="fade-up" data-aos-delay="300">
-			<div class="bg-gradient-to-br from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-gray-700/50 shadow-2xl transform hover:scale-[1.02] transition-all duration-500">
+			<div class="bg-linear-to-br from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-gray-700/50 shadow-2xl transform hover:scale-[1.02] transition-all duration-500">
 				<div class="bg-gray-900/50 rounded-lg p-3 sm:p-4 md:p-6 border border-gray-700/30">
 					<div class="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
 						<div class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-red-500"></div>
@@ -171,7 +171,7 @@
 
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
 			<!-- Feature 1 -->
-			<div class="bg-gradient-to-br from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20" data-aos="fade-up" data-aos-delay="100">
+			<div class="bg-linear-to-br from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20" data-aos="fade-up" data-aos-delay="100">
 				<div class="w-12 h-12 sm:w-14 sm:h-14 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4 sm:mb-6 transform hover:scale-110 transition-transform duration-300">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path
@@ -189,7 +189,7 @@
 			</div>
 
 			<!-- Feature 2 -->
-			<div class="bg-gradient-to-br from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-gray-700/50 hover:border-purple-500/50 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20" data-aos="fade-up" data-aos-delay="200">
+			<div class="bg-linear-to-br from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-gray-700/50 hover:border-purple-500/50 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20" data-aos="fade-up" data-aos-delay="200">
 				<div class="w-12 h-12 sm:w-14 sm:h-14 bg-purple-500/20 rounded-xl flex items-center justify-center mb-4 sm:mb-6 transform hover:scale-110 transition-transform duration-300">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path
@@ -207,7 +207,7 @@
 			</div>
 
 			<!-- Feature 3 -->
-			<div class="bg-gradient-to-br from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-gray-700/50 hover:border-green-500/50 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20" data-aos="fade-up" data-aos-delay="300">
+			<div class="bg-linear-to-br from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-gray-700/50 hover:border-green-500/50 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20" data-aos="fade-up" data-aos-delay="300">
 				<div class="w-12 h-12 sm:w-14 sm:h-14 bg-green-500/20 rounded-xl flex items-center justify-center mb-4 sm:mb-6 transform hover:scale-110 transition-transform duration-300">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path
@@ -225,7 +225,7 @@
 			</div>
 
 			<!-- Feature 4 -->
-			<div class="bg-gradient-to-br from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-gray-700/50 hover:border-yellow-500/50 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/20" data-aos="fade-up" data-aos-delay="400">
+			<div class="bg-linear-to-br from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-gray-700/50 hover:border-yellow-500/50 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/20" data-aos="fade-up" data-aos-delay="400">
 				<div class="w-12 h-12 sm:w-14 sm:h-14 bg-yellow-500/20 rounded-xl flex items-center justify-center mb-4 sm:mb-6 transform hover:scale-110 transition-transform duration-300">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path
@@ -243,7 +243,7 @@
 			</div>
 
 			<!-- Feature 5 -->
-			<div class="bg-gradient-to-br from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-gray-700/50 hover:border-red-500/50 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-red-500/20" data-aos="fade-up" data-aos-delay="500">
+			<div class="bg-linear-to-br from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-gray-700/50 hover:border-red-500/50 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-red-500/20" data-aos="fade-up" data-aos-delay="500">
 				<div class="w-12 h-12 sm:w-14 sm:h-14 bg-red-500/20 rounded-xl flex items-center justify-center mb-4 sm:mb-6 transform hover:scale-110 transition-transform duration-300">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path
@@ -261,7 +261,7 @@
 			</div>
 
 			<!-- Feature 6 -->
-			<div class="bg-gradient-to-br from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-gray-700/50 hover:border-indigo-500/50 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/20" data-aos="fade-up" data-aos-delay="600">
+			<div class="bg-linear-to-br from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-gray-700/50 hover:border-indigo-500/50 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/20" data-aos="fade-up" data-aos-delay="600">
 				<div class="w-12 h-12 sm:w-14 sm:h-14 bg-indigo-500/20 rounded-xl flex items-center justify-center mb-4 sm:mb-6 transform hover:scale-110 transition-transform duration-300">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path
@@ -282,14 +282,14 @@
 
 	<!-- CTA Section -->
 	<section class="container mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20 max-w-7xl">
-		<div class="bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 border border-blue-500/30 text-center transform transition-all duration-500" data-aos="zoom-in" data-aos-delay="100">
+		<div class="bg-linear-to-br from-blue-600/20 to-purple-600/20 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 border border-blue-500/30 text-center transform transition-all duration-500" data-aos="zoom-in" data-aos-delay="100">
 			<h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">Gotowy, aby zacząć?</h2>
 			<p class="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
 				Dołącz do tysięcy użytkowników, którzy już kontrolują swoje rachunki domowe
 			</p>
 			<button
 				onclick={openAuthModal}
-				class="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold text-base sm:text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 cursor-pointer hover:shadow-blue-500/50"
+				class="px-6 sm:px-8 py-3 sm:py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold text-base sm:text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 cursor-pointer hover:shadow-blue-500/50"
 			>
 				Załóż darmowe konto
 			</button>

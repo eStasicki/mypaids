@@ -13,17 +13,14 @@
 	import { filterMonths, getSearchStats, type SearchFilters } from "$lib/utils/searchUtils";
 	import { user } from "$lib/stores";
 	import { browser } from "$app/environment";
-	import { getProfile } from "$lib/supabase/handlers";
-	import UserSettingsModal from "$lib/components/UserSettingsModal.svelte";
 	import { goto } from "$app/navigation";
+	import { exportImportModalOpen, templateManagerOpen, addMonthFormOpen } from "$lib/stores/modals";
 
-	let showAddForm = $state(false);
-	let showExportImportModal = $state(false);
-	let showTemplateManager = $state(false);
-	let showUserSettingsModal = $state(false);
 	let isLoading = $state(false);
 	let currentUser = $derived($user);
-	let userProfile = $state<any>(null);
+	let showAddForm = $derived($addMonthFormOpen);
+	let showExportImportModal = $derived($exportImportModalOpen);
+	let showTemplateManager = $derived($templateManagerOpen);
 	let searchFilters = $state<SearchFilters>({
 		query: "",
 		categoryIds: new Set(),
@@ -33,48 +30,11 @@
 		sortOrder: "desc",
 	});
 
-	async function loadUserProfile() {
-		if (!currentUser) {
-			userProfile = null;
-			return;
-		}
-
-		try {
-			const profile = await getProfile();
-			userProfile = profile;
-		} catch (err: any) {
-			if (err?.message && (err.message.includes("Auth session missing") || err.message.includes("must be authenticated"))) {
-				userProfile = null;
-				return;
-			}
-			if (err?.message) {
-				console.error("Failed to load user profile:", err);
-			}
-			userProfile = null;
-		}
-	}
-
 	if (browser) {
 		$effect(() => {
 			if (!currentUser) {
 				goto("/");
-				return;
 			}
-			loadUserProfile();
-		});
-
-		$effect(() => {
-			const handleProfileUpdate = () => {
-				if (currentUser) {
-					loadUserProfile();
-				}
-			};
-			
-			window.addEventListener("profile-updated", handleProfileUpdate);
-			
-			return () => {
-				window.removeEventListener("profile-updated", handleProfileUpdate);
-			};
 		});
 	}
 
@@ -139,163 +99,17 @@
 	});
 </script>
 
-<div class="min-h-screen bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 text-gray-100">
-	<!-- Navigation -->
-	<nav class="container mx-auto px-4 py-6 max-w-7xl flex justify-between items-center border-b border-gray-800/50">
-		<div class="flex items-center gap-2">
-			<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-				/>
-			</svg>
-			<span class="text-2xl font-bold">Moje Rachunki</span>
-		</div>
-		<div class="flex items-center gap-4">
-			{#if currentUser}
-				<button
-					onclick={() => {
-						showUserSettingsModal = true;
-						loadUserProfile();
-					}}
-					class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-700/50 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
-					aria-label="Otwórz ustawienia konta"
-				>
-					{#if userProfile?.avatar_url}
-						<img
-							src={userProfile.avatar_url}
-							alt="Avatar użytkownika"
-							class="w-8 h-8 rounded-full object-cover border-2 border-gray-600"
-						/>
-					{:else}
-						<div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-							{currentUser.email?.charAt(0).toUpperCase() || "U"}
-						</div>
-					{/if}
-					<span class="text-sm text-gray-300">{currentUser.email}</span>
-				</button>
-			{/if}
-		</div>
-	</nav>
-
-	<div class="container mx-auto px-4 py-8 max-w-7xl">
-		<header
-			role="banner"
-			class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4"
-		>
-			<div>
-				<h1
-					class="text-5xl font-bold bg-linear-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 leading-normal"
-				>
-					{t("app.title", "Moje Rachunki")}
-				</h1>
-				<p class="text-gray-400 text-sm">
-					{t("app.subtitle", "Zarządzaj swoimi rachunkami domowymi")}
-				</p>
-			</div>
-		{#if currentUser}
-			<div class="flex gap-3 flex-wrap">
-				<a
-					href="/summary"
-					aria-label={t("aria.goToSummary", "Przejdź do podsumowania")}
-					class="px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 border border-gray-600/50 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer flex items-center gap-2 active:scale-95"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="h-5 w-5"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						aria-hidden="true"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-						/>
-					</svg>
-					<span>{t("monthsPage.summary", "Podsumowanie")}</span>
-				</a>
-				<button
-					onclick={() => (showExportImportModal = true)}
-					aria-label={t("aria.exportImport", "Eksportuj lub importuj dane")}
-					class="px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 border border-gray-600/50 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer flex items-center gap-2 active:scale-95"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="h-5 w-5"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						aria-hidden="true"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-						/>
-					</svg>
-					<span>{t("monthsPage.exportImport", "Eksport/Import")}</span>
-				</button>
-				<button
-					onclick={() => (showTemplateManager = true)}
-					aria-label={t("aria.manageTemplates", "Zarządzaj szablonami rachunków")}
-					class="px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 border border-gray-600/50 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer flex items-center gap-2 active:scale-95"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="h-5 w-5"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						aria-hidden="true"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-						/>
-					</svg>
-					<span>{t("monthsPage.templates", "Szablony")}</span>
-				</button>
-				<button
-					onclick={() => (showAddForm = !showAddForm)}
-					aria-label={showAddForm
-						? t("aria.cancelAddMonth", "Anuluj dodawanie miesiąca")
-						: t("aria.addNewMonth", "Dodaj nowy miesiąc")}
-					aria-expanded={showAddForm}
-					aria-controls="add-month-form"
-					class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl font-medium transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105 active:scale-95 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="h-5 w-5"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						aria-hidden="true"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M12 4v16m8-8H4"
-						/>
-					</svg>
-					<span
-						>{showAddForm
-							? t("common.cancel", "Anuluj")
-							: t("monthsPage.addMonth", "Dodaj Miesiąc")}</span
-					>
-				</button>
-			</div>
-		{/if}
-	</header>
+<div class="container mx-auto px-4 py-8 max-w-7xl">
+		<header role="banner" class="mb-10">
+			<h1
+				class="text-5xl font-bold bg-linear-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 leading-normal"
+			>
+				{t("app.title", "Moje Rachunki")}
+			</h1>
+			<p class="text-gray-400 text-sm">
+				{t("app.subtitle", "Zarządzaj swoimi rachunkami domowymi")}
+			</p>
+		</header>
 
 	{#if currentUser && showAddForm}
 		<div
@@ -304,7 +118,7 @@
 			role="region"
 			aria-labelledby="add-month-form-title"
 		>
-			<AddMonthForm onClose={() => (showAddForm = false)} />
+			<AddMonthForm onClose={() => addMonthFormOpen.set(false)} />
 		</div>
 	{/if}
 
@@ -465,9 +279,7 @@
 			{/each}
 		</div>
 	{/if}
-	</div>
 </div>
 
-<ExportImportModal show={showExportImportModal} onClose={() => (showExportImportModal = false)} />
-<TemplateManager show={showTemplateManager} onClose={() => (showTemplateManager = false)} />
-<UserSettingsModal bind:isOpen={showUserSettingsModal} />
+<ExportImportModal show={showExportImportModal} onClose={() => exportImportModalOpen.set(false)} />
+<TemplateManager show={showTemplateManager} onClose={() => templateManagerOpen.set(false)} />
