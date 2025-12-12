@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { months, templates } from '$lib/stores';
+	import { months, templates, newCardIds } from '$lib/stores';
 	import type { Month } from '$lib/types';
 	import { getMaxDaysInMonth, sortMonthsByDate, MONTH_NAMES } from '$lib/utils/monthUtils';
 	import { DATE_RANGES } from '$lib/utils/constants';
@@ -26,7 +26,6 @@
 		event.preventDefault();
 		const date = new Date(year, month - 1, day);
 		
-		// Automatycznie dodaj rachunki z szablonów z flagą autoAdd
 		const autoBills = $templates
 			.filter((template) => template.autoAdd)
 			.map((template) => templateToBill(template));
@@ -36,6 +35,12 @@
 			date,
 			bills: autoBills
 		};
+
+		newCardIds.update((ids) => {
+			const updated = new Set(ids);
+			updated.add(newMonth.id);
+			return updated;
+		});
 
 		months.update((ms) => {
 			const updated = [...ms, newMonth];

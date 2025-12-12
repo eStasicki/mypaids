@@ -40,13 +40,21 @@ export function filterBills(bills: Bill[], filters: SearchFilters): Bill[] {
 }
 
 export function filterMonths(months: Month[], filters: SearchFilters): Month[] {
+	const hasActiveFilters = filters.query.trim() !== '' || 
+		filters.categoryIds.size > 0 || 
+		filters.minAmount !== null || 
+		filters.maxAmount !== null;
+
 	const filtered = months.map((month) => ({
 		...month,
 		bills: filterBills(month.bills, filters)
-	})).filter((month) => month.bills.length > 0);
+	}));
 
-	// Sortowanie
-	const sorted = [...filtered].sort((a, b) => {
+	const monthsToShow = hasActiveFilters
+		? filtered.filter((month) => month.bills.length > 0)
+		: filtered;
+
+	const sorted = [...monthsToShow].sort((a, b) => {
 		let comparison = 0;
 
 		switch (filters.sortBy) {
@@ -68,7 +76,7 @@ export function filterMonths(months: Month[], filters: SearchFilters): Month[] {
 		return filters.sortOrder === 'asc' ? comparison : -comparison;
 	});
 
-		return sorted;
+	return sorted;
 }
 
 export function getSearchStats(months: Month[], filters: SearchFilters): {
