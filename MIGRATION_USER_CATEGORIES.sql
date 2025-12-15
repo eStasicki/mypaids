@@ -38,3 +38,5 @@ create trigger set_user_categories_updated_at
 create index user_categories_user_id_idx on public.user_categories(user_id);
 create index user_categories_name_idx on public.user_categories(name);
 
+
+
