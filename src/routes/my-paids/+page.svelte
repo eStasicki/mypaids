@@ -385,7 +385,74 @@
 				{/each}
 			</div>
 		{:else}
-			<div class="overflow-x-auto">
+			<div class="md:hidden space-y-4">
+				{#each filteredMonths as month (month.id)}
+					{@const paidBills = month.bills.filter((bill) => bill.amount !== null)}
+					{@const billsList = paidBills
+						.map((bill) => `${bill.name}: ${bill.amount?.toFixed(2) || 0}`)
+						.join(", ")}
+					{@const total = getTotalForMonth(month)}
+					<div
+						class="bg-gray-800/50 border border-gray-700/50 rounded-lg overflow-hidden hover:bg-gray-800/70 transition-colors"
+					>
+						<div class="border-b border-gray-700/50 px-4 py-3 flex items-center justify-between">
+							<div class="text-white font-medium text-base">
+								{getMonthName(month.date)}
+								{month.date.getFullYear()}
+							</div>
+							<button
+								onclick={() => {
+									editingMonth = month;
+									showEditModal = true;
+								}}
+								aria-label="Edytuj miesiąc {getMonthName(month.date)} {month.date.getFullYear()}"
+								class="text-blue-400 hover:text-blue-300 transition-all duration-200 p-2 rounded-lg hover:bg-blue-500/10 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer"
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									class="h-5 w-5"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+									aria-hidden="true"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+									/>
+								</svg>
+							</button>
+						</div>
+						<div class="border-b border-gray-700/50 px-4 py-3">
+							<div class="text-xs text-gray-400 mb-1 uppercase tracking-wider">Data zapłacenia</div>
+							<div class="text-gray-400 text-sm">
+								zapłacono: {month.date.toLocaleDateString("pl-PL", {
+									day: "numeric",
+									month: "long",
+									year: "numeric",
+								})}
+							</div>
+						</div>
+						<div class="border-b border-gray-700/50 px-4 py-3">
+							<div class="text-xs text-gray-400 mb-1 uppercase tracking-wider">Rachunki</div>
+							<div class="text-gray-300 text-sm">
+								{#if billsList}
+									{billsList}
+								{:else}
+									<span class="text-gray-500">Brak zapłaconych rachunków</span>
+								{/if}
+							</div>
+						</div>
+						<div class="px-4 py-3 flex items-center justify-between">
+							<div class="text-xs text-gray-400 uppercase tracking-wider">Suma</div>
+							<div class="text-white font-semibold text-lg">{total.toFixed(2)} ZŁ</div>
+						</div>
+					</div>
+				{/each}
+			</div>
+			<div class="hidden md:block overflow-x-auto">
 				<table
 					class="w-full table-auto border-separate border-spacing-0 border border-gray-700/50 rounded-lg overflow-hidden"
 				>
