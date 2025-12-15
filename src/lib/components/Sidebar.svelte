@@ -8,7 +8,10 @@
 	import { goto } from "$app/navigation";
 	import { t } from "$lib/utils/i18n";
 
-	let { showUserSettingsModal, onUserSettingsOpen }: { showUserSettingsModal: boolean; onUserSettingsOpen: () => void } = $props();
+	let {
+		showUserSettingsModal,
+		onUserSettingsOpen,
+	}: { showUserSettingsModal: boolean; onUserSettingsOpen: () => void } = $props();
 
 	let currentUser = $derived($user);
 	let currentPath = $derived($page.url.pathname);
@@ -26,7 +29,11 @@
 			const profile = await getProfile();
 			userProfile = profile;
 		} catch (err: any) {
-			if (err?.message && (err.message.includes("Auth session missing") || err.message.includes("must be authenticated"))) {
+			if (
+				err?.message &&
+				(err.message.includes("Auth session missing") ||
+					err.message.includes("must be authenticated"))
+			) {
 				userProfile = null;
 				return;
 			}
@@ -52,9 +59,9 @@
 					loadUserProfile();
 				}
 			};
-			
+
 			window.addEventListener("profile-updated", handleProfileUpdate);
-			
+
 			return () => {
 				window.removeEventListener("profile-updated", handleProfileUpdate);
 			};
@@ -63,14 +70,17 @@
 
 	function openCategoryManager() {
 		categoryManagerOpen.set(true);
+		closeSidebar();
 	}
 
 	function openExportImport() {
 		exportImportModalOpen.set(true);
+		closeSidebar();
 	}
 
 	function openTemplateManager() {
 		templateManagerOpen.set(true);
+		closeSidebar();
 	}
 
 	function toggleAddMonthForm() {
@@ -80,6 +90,7 @@
 		} else {
 			addMonthFormOpen.update((value) => !value);
 		}
+		closeSidebar();
 	}
 
 	function isActive(path: string): boolean {
@@ -90,7 +101,14 @@
 		sidebarOpen = !sidebarOpen;
 	}
 
+	function closeSidebar() {
+		if (browser && window.innerWidth < 1024) {
+			sidebarOpen = false;
+		}
+	}
+
 	async function handleSignOut() {
+		closeSidebar();
 		isSigningOut = true;
 		try {
 			await signOut();
@@ -102,9 +120,13 @@
 	}
 </script>
 
-<div class="fixed left-0 top-0 h-full z-40 flex">
+<div
+	class="fixed left-0 top-0 h-full {sidebarOpen
+		? 'z-50'
+		: 'z-0 pointer-events-none'} flex lg:z-50 lg:pointer-events-auto"
+>
 	<aside
-		class="bg-gray-800/95 backdrop-blur-sm border-r border-gray-700/50 w-64 flex flex-col transition-transform duration-300 ease-in-out {sidebarOpen
+		class="bg-gray-800/95 backdrop-blur-sm border-r border-gray-700/50 w-64 flex flex-col transition-transform duration-300 ease-in-out relative z-50 pointer-events-auto {sidebarOpen
 			? 'translate-x-0'
 			: '-translate-x-full'} lg:translate-x-0"
 	>
@@ -131,8 +153,19 @@
 				class="lg:hidden text-gray-400 hover:text-white transition-colors p-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
 				aria-label="Zamknij menu"
 			>
-				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-5 w-5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M6 18L18 6M6 6l12 12"
+					/>
 				</svg>
 			</button>
 		</div>
@@ -142,11 +175,20 @@
 				{#if currentUser}
 					<a
 						href="/my-paids"
-						class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {isActive('/my-paids')
+						onclick={closeSidebar}
+						class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {isActive(
+							'/my-paids'
+						)
 							? 'bg-blue-600/20 text-blue-400 border-l-2 border-blue-500'
 							: 'text-gray-300 hover:bg-gray-700/50 hover:text-white'}"
 					>
-						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-5 w-5"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -158,11 +200,20 @@
 					</a>
 					<a
 						href="/summary"
-						class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {isActive('/summary')
+						onclick={closeSidebar}
+						class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {isActive(
+							'/summary'
+						)
 							? 'bg-blue-600/20 text-blue-400 border-l-2 border-blue-500'
 							: 'text-gray-300 hover:bg-gray-700/50 hover:text-white'}"
 					>
-						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-5 w-5"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -181,7 +232,13 @@
 						onclick={toggleAddMonthForm}
 						class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-green-600/20 hover:bg-green-600/30 text-green-400 hover:text-green-300 border border-green-500/30 hover:border-green-500/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500"
 					>
-						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-5 w-5"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -195,7 +252,13 @@
 						onclick={openExportImport}
 						class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700/50 hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
-						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-5 w-5"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -209,7 +272,13 @@
 						onclick={openTemplateManager}
 						class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700/50 hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
-						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-5 w-5"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -223,7 +292,13 @@
 						onclick={openCategoryManager}
 						class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700/50 hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
-						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-5 w-5"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -236,11 +311,20 @@
 				{:else}
 					<a
 						href="/"
-						class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {isActive('/')
+						onclick={closeSidebar}
+						class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {isActive(
+							'/'
+						)
 							? 'bg-blue-600/20 text-blue-400 border-l-2 border-blue-500'
 							: 'text-gray-300 hover:bg-gray-700/50 hover:text-white'}"
 					>
-						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-5 w-5"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -260,6 +344,7 @@
 					onclick={() => {
 						onUserSettingsOpen();
 						loadUserProfile();
+						closeSidebar();
 					}}
 					class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-700/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
 					aria-label="Otwórz ustawienia konta"
@@ -271,7 +356,9 @@
 							class="w-8 h-8 rounded-full object-cover border-2 border-gray-600"
 						/>
 					{:else}
-						<div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+						<div
+							class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold"
+						>
 							{currentUser.email?.charAt(0).toUpperCase() || "U"}
 						</div>
 					{/if}
@@ -288,7 +375,13 @@
 					class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-500/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
 					aria-label="Wyloguj się"
 				>
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="h-4 w-4"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -301,18 +394,6 @@
 			</div>
 		{/if}
 	</aside>
-
-	{#if !sidebarOpen}
-		<button
-			onclick={toggleSidebar}
-			class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800/90 backdrop-blur-sm border border-gray-700/50 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
-			aria-label="Otwórz menu"
-		>
-			<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-			</svg>
-		</button>
-	{/if}
 
 	{#if sidebarOpen}
 		<div
@@ -329,3 +410,25 @@
 	{/if}
 </div>
 
+{#if !sidebarOpen}
+	<button
+		onclick={toggleSidebar}
+		class="lg:hidden fixed top-4 right-4 z-[9999] p-2 bg-blue-600/90 backdrop-blur-md border border-blue-500/70 rounded-lg text-white shadow-lg shadow-blue-900/40 hover:text-white hover:bg-blue-700/95 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400"
+		aria-label="Otwórz menu"
+	>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			class="h-6 w-6"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				stroke-width="2"
+				d="M4 6h16M4 12h16M4 18h16"
+			/>
+		</svg>
+	</button>
+{/if}
