@@ -413,7 +413,7 @@
 {#if !sidebarOpen}
 	<button
 		onclick={toggleSidebar}
-		class="lg:hidden fixed top-4 right-4 z-[9999] p-2 bg-blue-600/90 backdrop-blur-md border border-blue-500/70 rounded-lg text-white shadow-lg shadow-blue-900/40 hover:text-white hover:bg-blue-700/95 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400"
+		class="lg:hidden fixed top-4 right-4 z-9999 p-2 bg-blue-600/90 backdrop-blur-md border border-blue-500/70 rounded-lg text-white shadow-lg shadow-blue-900/40 hover:text-white hover:bg-blue-700/95 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400"
 		aria-label="Otwórz menu"
 	>
 		<svg

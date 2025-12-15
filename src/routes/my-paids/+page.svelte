@@ -147,7 +147,7 @@
 </script>
 
 <div class="container mx-auto px-4 py-8 max-w-7xl">
-	<header role="banner" class="mb-10">
+	<header class="mb-10">
 		<h1
 			class="text-5xl font-bold bg-linear-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 leading-normal"
 		>
@@ -165,7 +165,7 @@
 			role="region"
 			aria-labelledby="add-month-form-title"
 		>
-			<AddMonthForm onClose={() => addMonthFormOpen.set(false)} {highlightForm} />
+			<AddMonthForm onClose={() => addMonthFormOpen.set(false)} highlight={highlightForm} />
 		</div>
 	{/if}
 
