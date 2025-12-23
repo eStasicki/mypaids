@@ -63,15 +63,100 @@ export function parseImportedJSON(content: string): Month[] {
 }
 
 export function parseImportedCSV(content: string): Month[] {
-	const lines = content.split("\n").filter((line) => line.trim());
-	if (lines.length < 2) {
+	const lines = content.split("\n");
+	if (lines.length < 1) {
+		throw new Error("CSV file is empty or invalid");
+	}
+
+	const firstLine = lines[0].trim();
+	if (firstLine.startsWith("Rachunki")) {
+		return parseLegacyCSVFormat(lines);
+	}
+
+	return parseStandardCSVFormat(lines);
+}
+
+function parseLegacyCSVFormat(lines: string[]): Month[] {
+	const monthsMap = new Map<string, Month>();
+	let currentDate: Date | null = null;
+
+	for (const line of lines) {
+		const trimmed = line.trim();
+		if (!trimmed || trimmed === ",") continue;
+
+		if (trimmed.startsWith("Rachunki")) {
+			const dateMatch = trimmed.match(/Rachunki\s+(\d{2}\.\d{2}\.\d{4})/);
+			if (dateMatch) {
+				const dateStr = dateMatch[1];
+				const date = parseDate(dateStr);
+				if (date) {
+					currentDate = date;
+					const dateKey = date.toISOString().split("T")[0];
+					if (!monthsMap.has(dateKey)) {
+						monthsMap.set(dateKey, {
+							id: crypto.randomUUID(),
+							date,
+							bills: [],
+						});
+					}
+				} else {
+					console.warn(`Failed to parse date: ${dateStr}`);
+				}
+			} else {
+				console.warn(`Failed to match date pattern in: ${trimmed}`);
+			}
+			continue;
+		}
+
+		if (!currentDate) {
+			continue;
+		}
+
+		if (trimmed.includes(":")) {
+			const colonIndex = trimmed.indexOf(":");
+			const name = trimmed.substring(0, colonIndex).trim();
+			let amountStr = trimmed.substring(colonIndex + 1).trim();
+
+			if (!name) continue;
+
+			if (amountStr.startsWith(",")) {
+				amountStr = amountStr.substring(1).trim();
+			}
+
+			let amount: number | null = null;
+			if (amountStr && amountStr !== "-") {
+				const cleaned = amountStr.replace(/,/g, "");
+				const parsed = parseFloat(cleaned);
+				if (!isNaN(parsed)) {
+					amount = parsed;
+				}
+			}
+
+			const dateKey = currentDate.toISOString().split("T")[0];
+			const month = monthsMap.get(dateKey);
+			if (month) {
+				month.bills.push({
+					id: crypto.randomUUID(),
+					name,
+					amount,
+				});
+			}
+		}
+	}
+
+	return Array.from(monthsMap.values());
+}
+
+function parseStandardCSVFormat(lines: string[]): Month[] {
+	const filteredLines = lines.filter((line) => line.trim());
+	if (filteredLines.length < 2) {
 		throw new Error("CSV file is empty or invalid");
 	}
 
 	const monthsMap = new Map<string, Month>();
 
-	for (let i = 1; i < lines.length; i++) {
-		const line = lines[i].trim();
+	for (let i = 1; i < filteredLines.length; i++) {
+		const line = filteredLines[i].trim();
 		if (!line) continue;
 
 		const parts: string[] = [];
@@ -102,7 +187,7 @@ export function parseImportedCSV(content: string): Month[] {
 		const date = parseDate(dateStr.trim());
 		if (!date) continue;
 
-		const name = nameStr.trim();
+		const name = nameStr.trim().replace(/^"|"$/g, "");
 		if (!name) continue;
 
 		const amount = amountStr.trim() === "" ? null : parseFloat(amountStr.trim().replace(",", "."));
@@ -128,11 +213,33 @@ export function parseImportedCSV(content: string): Month[] {
 }
 
 function parseDate(dateStr: string): Date | null {
-	const formats = [/^\d{4}-\d{2}-\d{2}$/, /^\d{2}\.\d{2}\.\d{4}$/, /^\d{2}\/\d{2}\/\d{4}$/];
+	const yyyyMMdd = /^(\d{4})-(\d{2})-(\d{2})$/;
+	const ddmmyyyy = /^(\d{2})\.(\d{2})\.(\d{4})$/;
+	const ddmmyyyySlash = /^(\d{2})\/(\d{2})\/(\d{4})$/;
 
-	for (const format of formats) {
-		if (format.test(dateStr)) {
-			const date = new Date(dateStr.replace(/\./g, "-").replace(/\//g, "-"));
+	if (yyyyMMdd.test(dateStr)) {
+		const date = new Date(dateStr);
+		if (!isNaN(date.getTime())) {
+			return date;
+		}
+	}
+
+	if (ddmmyyyy.test(dateStr)) {
+		const match = dateStr.match(ddmmyyyy);
+		if (match) {
+			const [, day, month, year] = match;
+			const date = new Date(`${year}-${month}-${day}`);
+			if (!isNaN(date.getTime())) {
+				return date;
+			}
+		}
+	}
+
+	if (ddmmyyyySlash.test(dateStr)) {
+		const match = dateStr.match(ddmmyyyySlash);
+		if (match) {
+			const [, day, month, year] = match;
+			const date = new Date(`${year}-${month}-${day}`);
 			if (!isNaN(date.getTime())) {
 				return date;
 			}

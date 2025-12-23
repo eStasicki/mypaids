@@ -161,6 +161,24 @@
 		"selectFileLabel": "Wybierz plik do importu",
 		"fileTypes": "JSON lub CSV",
 		"importButton": "Importuj",
+		"delete": {
+			"description": "Wybierz typy danych, które chcesz usunąć. Ta operacja jest nieodwracalna.",
+			"monthsLabel": "Miesiące i rachunki",
+			"monthsDescription": "Usunie wszystkie miesiące oraz wszystkie przypisane do nich rachunki",
+			"categoriesLabel": "Kategorie użytkownika",
+			"categoriesDescription": "Usunie wszystkie niestandardowe kategorie utworzone przez Ciebie",
+			"warning": "Uwaga: Ta operacja jest nieodwracalna!",
+			"warningDescription": "Wszystkie wybrane dane zostaną trwale usunięte i nie będzie możliwości ich przywrócenia.",
+			"confirmLabel": "Aby potwierdzić, wpisz:",
+			"confirmPlaceholder": "USUŃ",
+			"confirmText": "USUŃ",
+			"button": "Usuń wybrane dane",
+			"errors": {
+				"nothingSelected": "Wybierz przynajmniej jeden typ danych do usunięcia",
+				"confirmTextMismatch": "Tekst potwierdzenia nie jest poprawny",
+				"deleteError": "Wystąpił błąd podczas usuwania danych"
+			}
+		},
 		"errors": {
 			"noMonthsSelected": "Wybierz przynajmniej jeden miesiąc do eksportu",
 			"noFileSelected": "Wybierz plik do importu",

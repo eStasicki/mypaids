@@ -253,3 +253,47 @@ export async function deleteBillFromSupabase(billId: string): Promise<void> {
 	console.log("[deleteBillFromSupabase] Deleted bill count:", data.length);
 }
 
+export async function deleteAllMonthsFromSupabase(): Promise<void> {
+	const supabase = createClient();
+	const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+	if (authError) {
+		throw new Error(`Authentication error: ${authError.message}`);
+	}
+
+	if (!user) {
+		throw new Error("User not authenticated");
+	}
+
+	const { error } = await supabase
+		.from("months")
+		.delete()
+		.eq("user_id", user.id);
+
+	if (error) {
+		throw error;
+	}
+}
+
+export async function deleteAllUserCategoriesFromSupabase(): Promise<void> {
+	const supabase = createClient();
+	const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+	if (authError) {
+		throw new Error(`Authentication error: ${authError.message}`);
+	}
+
+	if (!user) {
+		throw new Error("User not authenticated");
+	}
+
+	const { error } = await supabase
+		.from("user_categories")
+		.delete()
+		.eq("user_id", user.id);
+
+	if (error) {
+		throw error;
+	}
+}
+

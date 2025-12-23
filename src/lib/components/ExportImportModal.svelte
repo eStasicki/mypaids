@@ -10,14 +10,23 @@
 	} from "$lib/utils/exportUtils";
 	import { generatePDFReport } from "$lib/utils/pdfUtils";
 	import { sortMonthsByDate, getMonthName } from "$lib/utils/monthUtils";
+	import {
+		deleteAllMonthsFromSupabase,
+		deleteAllUserCategoriesFromSupabase,
+		loadMonthsFromSupabase,
+	} from "$lib/utils/supabaseUtils";
 	import type { Month } from "$lib/types";
 
 	let { show, onClose }: { show: boolean; onClose: () => void } = $props();
-	let activeTab = $state<"export" | "import">("export");
+	let activeTab = $state<"export" | "import" | "delete">("export");
 	let importError = $state<string | null>(null);
 	let importFile: File | null = $state(null);
 	let selectedMonthsForExport = $state<Set<string>>(new Set());
 	let showMonthSelection = $state(false);
+	let deleteMonths = $state(false);
+	let deleteCategories = $state(false);
+	let isDeleting = $state(false);
+	let deleteConfirmText = $state("");
 
 	function getMonthsToExport(): Month[] {
 		if (selectedMonthsForExport.size === 0) {
@@ -87,6 +96,9 @@
 			selectedMonthsForExport = new Set();
 			showMonthSelection = false;
 			importError = null;
+			deleteMonths = false;
+			deleteCategories = false;
+			deleteConfirmText = "";
 		}
 	});
 
@@ -140,6 +152,40 @@
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.key === "Escape") {
 			onClose();
+		}
+	}
+
+	async function handleDelete() {
+		if (!deleteMonths && !deleteCategories) {
+			importError = $_("exportImport.delete.errors.nothingSelected");
+			return;
+		}
+
+		if (deleteConfirmText !== $_("exportImport.delete.confirmText")) {
+			importError = $_("exportImport.delete.errors.confirmTextMismatch");
+			return;
+		}
+
+		isDeleting = true;
+		importError = null;
+
+		try {
+			if (deleteMonths) {
+				await deleteAllMonthsFromSupabase();
+				const updatedMonths = await loadMonthsFromSupabase();
+				months.set(updatedMonths);
+			}
+
+			if (deleteCategories) {
+				await deleteAllUserCategoriesFromSupabase();
+			}
+
+			onClose();
+		} catch (error) {
+			importError =
+				error instanceof Error ? error.message : $_("exportImport.delete.errors.deleteError");
+		} finally {
+			isDeleting = false;
 		}
 	}
 </script>
@@ -204,6 +250,16 @@
 						: 'text-gray-400 hover:text-gray-300'}"
 				>
 					Import
+				</button>
+				<button
+					onclick={() => (activeTab = "delete")}
+					aria-label="Zakładka usuwania danych"
+					class="px-4 py-2 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer {activeTab ===
+					'delete'
+						? 'text-red-400 border-b-2 border-red-400'
+						: 'text-gray-400 hover:text-gray-300'}"
+				>
+					Usuń dane
 				</button>
 			</div>
 
@@ -413,10 +469,10 @@
 						</div>
 					{/if}
 				</div>
-			{:else}
+			{:else if activeTab === "import"}
 				<div class="space-y-4">
 					<p class="text-gray-400 text-sm mb-4">
-						Zaimportuj dane z pliku JSON lub CSV. Istniejące dane zostaną zastąpione.
+						{$_("exportImport.importDescription")}
 					</p>
 					<div class="space-y-4">
 						<label
@@ -440,9 +496,9 @@
 							</svg>
 							<div class="text-center">
 								<div class="font-medium text-white mb-1">
-									{importFile ? importFile.name : "Kliknij, aby wybrać plik"}
+									{importFile ? importFile.name : $_("exportImport.selectFile")}
 								</div>
-								<div class="text-xs text-gray-400">JSON lub CSV</div>
+								<div class="text-xs text-gray-400">{$_("exportImport.fileTypes")}</div>
 							</div>
 							<input
 								id="import-file"
@@ -484,16 +540,146 @@
 								aria-label="Importuj dane"
 								class="flex-1 px-6 py-3 bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
 							>
-								Importuj
+								{$_("exportImport.importButton")}
 							</button>
 							<button
 								onclick={onClose}
-								aria-label="Anuluj"
+								aria-label={$_("common.cancel")}
 								class="flex-1 px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 border border-gray-600/50 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer"
 							>
-								Anuluj
+								{$_("common.cancel")}
 							</button>
 						</div>
+					</div>
+				</div>
+			{:else if activeTab === "delete"}
+				<div class="space-y-4">
+					<p class="text-gray-400 text-sm mb-4">
+						{$_("exportImport.delete.description")}
+					</p>
+
+					<div class="space-y-3">
+						<label
+							class="flex items-start gap-3 p-4 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg border border-gray-600/50 transition-all duration-200 cursor-pointer"
+						>
+							<input
+								type="checkbox"
+								bind:checked={deleteMonths}
+								aria-label={$_("exportImport.delete.monthsLabel")}
+								class="mt-1 w-4 h-4 rounded border-gray-600 bg-gray-700 text-red-600 focus:ring-2 focus:ring-red-500 cursor-pointer"
+							/>
+							<div class="flex-1">
+								<div class="font-medium text-white mb-1">
+									{$_("exportImport.delete.monthsLabel")}
+								</div>
+								<div class="text-xs text-gray-400">
+									{$_("exportImport.delete.monthsDescription")}
+								</div>
+							</div>
+						</label>
+
+						<label
+							class="flex items-start gap-3 p-4 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg border border-gray-600/50 transition-all duration-200 cursor-pointer"
+						>
+							<input
+								type="checkbox"
+								bind:checked={deleteCategories}
+								aria-label={$_("exportImport.delete.categoriesLabel")}
+								class="mt-1 w-4 h-4 rounded border-gray-600 bg-gray-700 text-red-600 focus:ring-2 focus:ring-red-500 cursor-pointer"
+							/>
+							<div class="flex-1">
+								<div class="font-medium text-white mb-1">
+									{$_("exportImport.delete.categoriesLabel")}
+								</div>
+								<div class="text-xs text-gray-400">
+									{$_("exportImport.delete.categoriesDescription")}
+								</div>
+							</div>
+						</label>
+					</div>
+
+					{#if deleteMonths || deleteCategories}
+						<div class="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+							<div class="flex items-start gap-3">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									class="h-5 w-5 text-red-400 mt-0.5 shrink-0"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+									aria-hidden="true"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+									/>
+								</svg>
+								<div class="flex-1">
+									<div class="text-sm font-medium text-red-400 mb-2">
+										{$_("exportImport.delete.warning")}
+									</div>
+									<div class="text-xs text-gray-400 mb-4">
+										{$_("exportImport.delete.warningDescription")}
+									</div>
+									<label class="block">
+										<div class="text-xs text-gray-300 mb-2">
+											{$_("exportImport.delete.confirmLabel")}
+										</div>
+										<input
+											type="text"
+											bind:value={deleteConfirmText}
+											placeholder={$_("exportImport.delete.confirmPlaceholder")}
+											class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+										/>
+									</label>
+								</div>
+							</div>
+						</div>
+					{/if}
+
+					{#if importError && activeTab === "delete"}
+						<div class="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+							<div class="flex items-center gap-2 text-red-400">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									class="h-5 w-5"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+									aria-hidden="true"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+									/>
+								</svg>
+								<span class="text-sm font-medium">{importError}</span>
+							</div>
+						</div>
+					{/if}
+
+					<div class="flex gap-3 pt-2">
+						<button
+							onclick={handleDelete}
+							disabled={(!deleteMonths && !deleteCategories) ||
+								isDeleting ||
+								deleteConfirmText !== $_("exportImport.delete.confirmText")}
+							aria-label="Usuń wybrane dane"
+							class="flex-1 px-6 py-3 bg-linear-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-all duration-200 shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer"
+						>
+							{isDeleting ? $_("common.loading") : $_("exportImport.delete.button")}
+						</button>
+						<button
+							onclick={onClose}
+							aria-label="Anuluj"
+							class="flex-1 px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 border border-gray-600/50 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer"
+						>
+							{$_("common.cancel")}
+						</button>
 					</div>
 				</div>
 			{/if}
