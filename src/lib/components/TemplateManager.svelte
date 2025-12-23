@@ -146,10 +146,10 @@
 		aria-labelledby="template-manager-title"
 		onclick={handleBackdropClick}
 		onkeydown={handleKeydown}
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4 overflow-y-auto"
 	>
 		<div
-			class="bg-linear-to-br from-gray-800/95 to-gray-800/90 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-700/50 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+			class="bg-linear-to-br from-gray-800/95 to-gray-800/90 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-700/50 max-w-4xl w-full my-auto max-h-[90vh] overflow-y-auto"
 		>
 			<div class="flex items-center justify-between mb-6">
 				<h2 id="template-manager-title" class="text-2xl font-bold text-white">

@@ -152,10 +152,10 @@
 		tabindex="-1"
 		onclick={handleBackdropClick}
 		onkeydown={handleKeydown}
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto p-4"
 	>
 		<div
-			class="bg-linear-to-br from-gray-800/95 to-gray-800/90 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-700/50 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto transform transition-all animate-fade-in"
+			class="bg-linear-to-br from-gray-800/95 to-gray-800/90 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-700/50 max-w-4xl w-full my-auto max-h-[90vh] overflow-y-auto transform transition-all animate-fade-in"
 		>
 			<div class="flex items-center justify-between mb-6">
 				<h2 id="export-import-title" class="text-2xl font-bold text-white">

@@ -35,10 +35,10 @@
 		tabindex="-1"
 		onclick={handleBackdropClick}
 		onkeydown={handleKeydown}
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto p-4"
 	>
 		<div
-			class="bg-linear-to-br from-gray-800/95 to-gray-800/90 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-gray-700/50 max-w-md w-full mx-4 transform transition-all animate-fade-in"
+			class="bg-linear-to-br from-gray-800/95 to-gray-800/90 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-gray-700/50 max-w-md w-full my-auto transform transition-all animate-fade-in"
 		>
 			<div class="flex items-start gap-4 mb-4">
 				<div
